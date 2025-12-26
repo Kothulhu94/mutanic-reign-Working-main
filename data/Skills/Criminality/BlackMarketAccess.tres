@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://cnx8p4wqr2yk5"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"black_market_access"
+display_name = "Black Market Access"
+description = "Generate 25 passive resources per cycle through black market operations. Trade restricted goods and contraband with criminal networks."
+domain_id = &"Criminality"
+tier = 2
+max_rank = 10
+primary_attribute = &"Guile"
+secondary_attribute = &"Might"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [25.0, 28.0, 31.0, 34.0, 37.0, 40.0, 43.0, 46.0, 49.0, 55.0]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"black_market_income"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"black_market_trading"
+xp_trigger_description = "Gain XP when trading contraband and operating in criminal economic networks"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"protection_racket"]
+unlocks_system = "black_market_trading"

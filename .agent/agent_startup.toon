@@ -1,0 +1,27 @@
+@reference "Mutanic Reign Agent Startup Bootloader"
+@format "TOON 1.4"
+@version "4.5.stable"
+@context "Project-Specific Agent Initialization & RAG Discovery"
+
+@bootstrap
+  @rules
+    - "verified_rag_api_mandatory": "Prioritize local TOON/MD API files over internal training data."
+    - "godot_version_enforced": "4.5.stable"
+    - "resource_refining_active": "Ignore 3D and Audio documentation (Node3D, AudioStreamPlayer, etc.) unless specifically requested."
+    - "path_standards": "All workspace paths must remain absolute relative to the drive root (d:\GodoTDev\)."
+
+@paths
+  @workspace_root "d:\GodoTDev\mutanic-reign-Working-main\mutanic-reign-Working-main"
+  @python_bin "d:\GodoTDev\Python\python.exe"
+  @full_docs "d:\GodoTDev\godot-docs-html-stable\index.html"
+  @ecosystem_root "d:\GodoTDev"
+
+@rag_resources
+  @global_rules "d:\GodoTDev\Godot2DRefined\AgentRules.toon"
+  @libraries
+    - "d:\GodoTDev\Godot2DRefined\Reference\2DClasses.toon"
+    - "d:\GodoTDev\Godot2DRefined\Reference\CoreClasses.toon"
+    - "d:\GodoTDev\Godot2DRefined\Reference\UIClasses.toon"
+    - "d:\GodoTDev\Godot2DRefined\Reference\MathAndUtility.toon"
+  @project_specific
+    - "d:\GodoTDev\mutanic-reign-Working-main\mutanic-reign-Working-main\.agent\Godot_4_5_API_Consolidated.toon"

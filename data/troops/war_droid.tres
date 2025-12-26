@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "War Droid"
+description = "An advanced autonomous combat chassis with balanced offensive and defensive protocols."
+tier = 3
+archetype = "Brawler"
+recruitment_cost = 300
+health_bonus = 9
+damage_bonus = 9
+defense_bonus = 7

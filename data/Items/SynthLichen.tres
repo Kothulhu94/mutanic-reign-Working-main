@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://caj4x6m2wnkpr"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_mp4xs"]
+
+[resource]
+script = ExtResource("1_mp4xs")
+id = &"SynthLichen"
+display_name = "Synth-Lichen"
+tags = Array[StringName]([&"medical", &"flora", &"ingredient"])
+base_price = 15.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

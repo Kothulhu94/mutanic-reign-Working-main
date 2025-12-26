@@ -1,0 +1,73 @@
+[gd_resource type="Resource" script_class="ItemDB" load_steps=34 format=3 uid="uid://dpu7dor4326r3"]
+
+[ext_resource type="Resource" uid="uid://cttkx1kfbqtg3" path="res://data/Items/Wheat.tres" id="1_cy0fy"]
+[ext_resource type="Script" uid="uid://k0oeo8cvtysn" path="uid://k0oeo8cvtysn" id="1_ofils"]
+[ext_resource type="Resource" uid="uid://cyiyvj1hu658e" path="res://data/Items/RabbitMeat.tres" id="2_xdey0"]
+[ext_resource type="Resource" uid="uid://cg14vrqfmcma5" path="res://data/Items/Hemp.tres" id="3_qkibh"]
+[ext_resource type="Resource" uid="uid://bsrjbqo73rob2" path="res://data/Items/Aloe.tres" id="4_nqmmg"]
+[ext_resource type="Resource" uid="uid://dc4xkrj0qf45c" path="res://data/Items/Stone.tres" id="5_petay"]
+[ext_resource type="Resource" uid="uid://kjlpniys3r55" path="res://data/Items/Scrap.tres" id="6_8tqx4"]
+[ext_resource type="Resource" uid="uid://ctw3a07dvimsb" path="res://data/Items/Cotton.tres" id="7_p027r"]
+[ext_resource type="Resource" uid="uid://unpxmbuk5l84" path="res://data/Items/Coffee.tres" id="8_nqmmg"]
+[ext_resource type="Resource" uid="uid://bsr1hueklq88j" path="res://data/Items/WheatBread.tres" id="9_petay"]
+[ext_resource type="Resource" uid="uid://d3n8k6q4rwxjp" path="res://data/Items/AzureGem.tres" id="10_az8gm"]
+[ext_resource type="Resource" uid="uid://cnvq8h3y7xm5p" path="res://data/Items/HydroBerries.tres" id="11_hyber"]
+[ext_resource type="Resource" uid="uid://dh8v2w5n3kpqr" path="res://data/Items/IronOre.tres" id="12_irnor"]
+[ext_resource type="Resource" uid="uid://c5f2laj4p8xqw" path="res://data/Items/MycoProtein.tres" id="13_mycop"]
+[ext_resource type="Resource" uid="uid://bmxp7r3k2yq4n" path="res://data/Items/RawCrystal.tres" id="14_rawcr"]
+[ext_resource type="Resource" uid="uid://caj4x6m2wnkpr" path="res://data/Items/SynthLichen.tres" id="15_synli"]
+[ext_resource type="Resource" uid="uid://b5h7w3lamxpqv" path="res://data/Items/XenoOrchid.tres" id="16_xenor"]
+[ext_resource type="Resource" uid="uid://c7q5v8xapxmjk" path="res://data/Items/XenoRoot.tres" id="17_xenrt"]
+[ext_resource type="Resource" uid="uid://c8n6x4xapqrst" path="res://data/Items/HydroBerriesBread.tres" id="18_hbbrd"]
+[ext_resource type="Resource" uid="uid://c0g4h7u2tx012" path="res://data/Items/CombatStims.tres" id="19_cbstm"]
+[ext_resource type="Resource" uid="uid://c3j7k0x5w0235" path="res://data/Items/CutAzureGem.tres" id="20_ctagm"]
+[ext_resource type="Resource" uid="uid://b3y700n5mqtuv" path="res://data/Items/CutStone.tres" id="21_ctstn"]
+[ext_resource type="Resource" uid="uid://vep0sx4l056" path="res://data/Items/EnergyLens.tres" id="22_nrgln"]
+[ext_resource type="Resource" uid="uid://dy6t3vq7o388" path="res://data/Items/HealingSalve.tres" id="23_hlslv"]
+[ext_resource type="Resource" uid="uid://b6c0d3q8ptwxy" path="res://data/Items/IronIngot.tres" id="24_irning"]
+[ext_resource type="Resource" uid="uid://d1h5i8v3uy013" path="res://data/Items/LuxuryFabric.tres" id="25_lxfab"]
+[ext_resource type="Resource" uid="uid://caf3g6t1sw001" path="res://data/Items/MediGel.tres" id="26_mdgel"]
+[ext_resource type="Resource" uid="uid://d4k8l1y6x1346" path="res://data/Items/OrchidPerfume.tres" id="27_orchpf"]
+[ext_resource type="Resource" uid="uid://c2x60am4lpstu" path="res://data/Items/ProteinBar.tres" id="28_prtbr"]
+[ext_resource type="Resource" uid="uid://c408a1o6nruvw" path="res://data/Items/RefinedMetal.tres" id="29_rfnmt"]
+[ext_resource type="Resource" uid="uid://b2i6kaw4v0124" path="res://data/Items/RoastedCoffee.tres" id="30_rstcf"]
+[ext_resource type="Resource" uid="uid://d1w5x8n3kqrst" path="res://data/Items/SmokedMeat.tres" id="31_smkmt"]
+[ext_resource type="Resource" uid="uid://c7d1e4saquxy0" path="res://data/Items/SynthWeaveBandage.tres" id="32_swband"]
+
+[resource]
+script = ExtResource("1_ofils")
+items = {
+&"Aloe": ExtResource("4_nqmmg"),
+&"AzureGem": ExtResource("10_az8gm"),
+&"Coffee": ExtResource("8_nqmmg"),
+&"CombatStims": ExtResource("19_cbstm"),
+&"Cotton": ExtResource("7_p027r"),
+&"CutAzureGem": ExtResource("20_ctagm"),
+&"CutStone": ExtResource("21_ctstn"),
+&"EnergyLens": ExtResource("22_nrgln"),
+&"HealingSalve": ExtResource("23_hlslv"),
+&"Hemp": ExtResource("3_qkibh"),
+&"HydroBerries": ExtResource("11_hyber"),
+&"HydroBerriesBread": ExtResource("18_hbbrd"),
+&"IronIngot": ExtResource("24_irning"),
+&"IronOre": ExtResource("12_irnor"),
+&"LuxuryFabric": ExtResource("25_lxfab"),
+&"MediGel": ExtResource("26_mdgel"),
+&"MycoProtein": ExtResource("13_mycop"),
+&"OrchidPerfume": ExtResource("27_orchpf"),
+&"ProteinBar": ExtResource("28_prtbr"),
+&"RabbitMeat": ExtResource("2_xdey0"),
+&"RawCrystal": ExtResource("14_rawcr"),
+&"RefinedMetal": ExtResource("29_rfnmt"),
+&"RoastedCoffee": ExtResource("30_rstcf"),
+&"Scrap": ExtResource("6_8tqx4"),
+&"SmokedMeat": ExtResource("31_smkmt"),
+&"Stone": ExtResource("5_petay"),
+&"SynthLichen": ExtResource("15_synli"),
+&"SynthWeaveBandage": ExtResource("32_swband"),
+&"Wheat": ExtResource("1_cy0fy"),
+&"WheatBread": ExtResource("9_petay"),
+&"XenoOrchid": ExtResource("16_xenor"),
+&"XenoRoot": ExtResource("17_xenrt")
+}
+metadata/_custom_type_script = "uid://k0oeo8cvtysn"

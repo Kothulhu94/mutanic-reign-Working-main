@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://d7xn5wp2q4yk8"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"community_rituals"
+display_name = "Community Rituals"
+description = "Grant +20 happiness to faithful population. Religious ceremonies, festivals, and communal worship strengthen social bonds and morale."
+domain_id = &"Religion"
+tier = 1
+max_rank = 10
+primary_attribute = &"Willpower"
+secondary_attribute = &"Intellect"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [20.0, 22.0, 24.0, 26.0, 28.0, 30.0, 32.0, 34.0, 36.0, 40.0]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"faithful_happiness"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"conducting_rituals"
+xp_trigger_description = "Gain XP when leading religious ceremonies and community worship events"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = []
+unlocks_system = "religious_rituals"

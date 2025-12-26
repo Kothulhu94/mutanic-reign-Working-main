@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SkillDomain" load_steps=9 format=3 uid="uid://domain_diplomacy"]
+
+[ext_resource type="Script" path="uid://kj506ua3it00" id="1"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/FirstContact.tres" id="2"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/TreatyNegotiation.tres" id="3"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/CulturalUnderstanding.tres" id="4"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/AllianceForging.tres" id="5"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/ConflictMediation.tres" id="6"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/InformationNetworks.tres" id="7"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/PoliticalLeverage.tres" id="8"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/MasterDiplomat.tres" id="9"]
+
+[resource]
+script = ExtResource("1")
+domain_id = &"Diplomacy"
+display_name = "Diplomacy"
+description = "Navigate politics through cunning and will. Forge alliances and manipulate faction relationships."
+primary_attribute = &"Guile"
+secondary_attribute = &"Willpower"
+skills = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9")]
+bonus_at_rank_5 = "+10% influence gain"
+bonus_at_rank_10 = "+20% influence gain and negotiation success chance"
+xp_curve_base = 100
+xp_curve_multiplier = 2.0
+perk_unlock_levels = Array[int]([1, 3, 6, 10, 15, 21])
+passive_bonus_description = "+1% Influence Gain per level"

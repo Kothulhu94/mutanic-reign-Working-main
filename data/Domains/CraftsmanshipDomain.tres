@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SkillDomain" load_steps=9 format=3 uid="uid://domain_craftsmanship"]
+
+[ext_resource type="Script" path="uid://kj506ua3it00" id="1"]
+[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/ConstructionBasics.tres" id="2"]
+[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/ProductionChains.tres" id="3"]
+[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/QualityTools.tres" id="4"]
+[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/IndustrialPlanning.tres" id="5"]
+[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/MassManufacturing.tres" id="6"]
+[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/SalvageOperations.tres" id="7"]
+[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/EconomicEngine.tres" id="8"]
+
+[resource]
+script = ExtResource("1")
+domain_id = &"Craftsmanship"
+display_name = "Craftsmanship"
+description = "Build and produce with strength and intellect. Master industrial production and economic dominance."
+primary_attribute = &"Might"
+secondary_attribute = &"Intellect"
+skills = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8")]
+bonus_at_rank_5 = "+10% crafting speed"
+bonus_at_rank_10 = "+20% crafting quality chance"
+xp_curve_base = 100
+xp_curve_multiplier = 2.0
+perk_unlock_levels = Array[int]([1, 3, 6, 10, 15, 21])
+passive_bonus_description = "+1% Crafting Speed per level"

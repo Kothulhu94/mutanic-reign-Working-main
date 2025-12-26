@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://d1w5x8n3kqrst"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_smkmt"]
+
+[resource]
+script = ExtResource("1_smkmt")
+id = &"SmokedMeat"
+display_name = "Smoked Meat"
+tags = Array[StringName]([&"food", &"provisions", &"processed"])
+base_price = 15.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Colossus"
+description = "A walking fortress. This bio-engineered behemoth is designed to absorb catastrophic amounts of damage."
+tier = 4
+archetype = "Tank"
+recruitment_cost = 750
+health_bonus = 30
+damage_bonus = 5
+defense_bonus = 15

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Phalanx Unit"
+description = "A mobile fortress. Its only purpose is to absorb incoming fire via overlapping void shields."
+recruitment_cost = 2000
+health_bonus = 25
+damage_bonus = 5
+defense_bonus = 70

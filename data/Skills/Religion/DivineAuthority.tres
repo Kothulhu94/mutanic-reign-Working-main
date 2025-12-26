@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://c7xq5wp2n4yk8"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"divine_authority"
+display_name = "Divine Authority"
+description = "Convert 20% of population per cycle, maximum 95% of any hub. Your religious authority approaches absolute spiritual dominance."
+domain_id = &"Religion"
+tier = 3
+max_rank = 10
+primary_attribute = &"Willpower"
+secondary_attribute = &"Intellect"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [0.20, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.30]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"conversion_rate_advanced"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = [0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95]
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"exerting_divine_authority"
+xp_trigger_description = "Gain XP when wielding supreme religious authority to mass convert populations"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"missionary_expeditions", &"religious_law"]
+unlocks_system = "theocratic_supremacy"

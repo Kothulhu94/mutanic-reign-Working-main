@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://cpw7k3mxqn5jt"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"caravan_intelligence"
+display_name = "Caravan Intelligence"
+description = "See enemy positions within 5 hex radius."
+domain_id = &"Exploration"
+tier = 2
+max_rank = 10
+primary_attribute = &"Might"
+secondary_attribute = &"Guile"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 10.0]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"detection_range"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"detecting_enemies"
+xp_trigger_description = "Gain XP when spotting enemies before engagement"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"resource_scanning"]
+unlocks_system = ""

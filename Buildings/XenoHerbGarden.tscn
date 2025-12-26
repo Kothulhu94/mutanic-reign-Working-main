@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://b83iq3ein057"]
+
+[ext_resource type="Script" path="uid://ctbwc64u8qwgv" id="1_xherb"]
+
+[node name="XenoHerbGarden" type="Node2D"]
+script = ExtResource("1_xherb")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

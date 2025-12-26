@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://c2x60am4lpstu"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_prtbr"]
+
+[resource]
+script = ExtResource("1_prtbr")
+id = &"ProteinBar"
+display_name = "Protein Bar"
+tags = Array[StringName]([&"food", &"rations", &"processed"])
+base_price = 18.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

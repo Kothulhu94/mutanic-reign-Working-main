@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://d7k2n8qxpwvm5"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"resource_scanning"
+display_name = "Resource Scanning"
+description = "Reveal resource deposits within explored hexes."
+domain_id = &"Exploration"
+tier = 1
+max_rank = 10
+primary_attribute = &"Might"
+secondary_attribute = &"Guile"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"resource_detection"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"discovering_resources"
+xp_trigger_description = "Gain XP when discovering resource deposits"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = []
+unlocks_system = "resource_scanning"

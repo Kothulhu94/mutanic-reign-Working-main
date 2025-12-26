@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="SkillDatabase" load_steps=14 format=3 uid="uid://skill_database_root"]
+
+[ext_resource type="Script" path="uid://cg7v4inyg6hlh" id="1"]
+[ext_resource type="Resource" path="res://data/Domains/MeleeDomain.tres" id="2"]
+[ext_resource type="Resource" path="res://data/Domains/RangedDomain.tres" id="3"]
+[ext_resource type="Resource" path="res://data/Domains/ArtifactWeaponsDomain.tres" id="4"]
+[ext_resource type="Resource" path="res://data/Domains/ExplorationDomain.tres" id="5"]
+[ext_resource type="Resource" path="res://data/Domains/CraftsmanshipDomain.tres" id="6"]
+[ext_resource type="Resource" path="res://data/Domains/TradingDomain.tres" id="7"]
+[ext_resource type="Resource" path="res://data/Domains/GovernanceDomain.tres" id="8"]
+[ext_resource type="Resource" path="res://data/Domains/LeadershipDomain.tres" id="9"]
+[ext_resource type="Resource" path="res://data/Domains/DiplomacyDomain.tres" id="10"]
+[ext_resource type="Resource" path="res://data/Domains/CriminalityDomain.tres" id="11"]
+[ext_resource type="Resource" path="res://data/Domains/EspionageDomain.tres" id="12"]
+[ext_resource type="Resource" path="res://data/Domains/ReligionDomain.tres" id="13"]
+
+[resource]
+script = ExtResource("1")
+melee_domain = ExtResource("2")
+ranged_domain = ExtResource("3")
+artifact_domain = ExtResource("4")
+exploration_domain = ExtResource("5")
+craftsmanship_domain = ExtResource("6")
+trading_domain = ExtResource("7")
+governance_domain = ExtResource("8")
+leadership_domain = ExtResource("9")
+diplomacy_domain = ExtResource("10")
+criminality_domain = ExtResource("11")
+espionage_domain = ExtResource("12")
+religion_domain = ExtResource("13")

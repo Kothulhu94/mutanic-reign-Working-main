@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://d3n8k6q4rwxjp"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_bv9xr"]
+
+[resource]
+script = ExtResource("1_bv9xr")
+id = &"AzureGem"
+display_name = "Azure Gem"
+tags = Array[StringName]([&"luxury", &"mineral", &"ingredient"])
+base_price = 50.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

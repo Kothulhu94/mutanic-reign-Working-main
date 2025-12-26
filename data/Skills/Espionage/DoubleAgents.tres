@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://c2wp4nxq5yk8h"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"double_agents"
+display_name = "Double Agents"
+description = "30% chance to turn enemy spies into double agents working for you. Provides misinformation to enemies and protects your operations."
+domain_id = &"Espionage"
+tier = 2
+max_rank = 10
+primary_attribute = &"Guile"
+secondary_attribute = &"Intellect"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [0.30, 0.32, 0.34, 0.36, 0.38, 0.40, 0.42, 0.44, 0.46, 0.50]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"double_agent_conversion_chance"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"turning_enemy_spies"
+xp_trigger_description = "Gain XP when successfully identifying and converting enemy spies to double agents"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"intelligence_gathering", &"secure_communications"]
+unlocks_system = "double_agent_operations"

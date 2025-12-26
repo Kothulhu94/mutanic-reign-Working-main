@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CaravanType" load_steps=3 format=3 uid="uid://d0kksk2xxwyvv"]
+
+[ext_resource type="Script" uid="uid://baj5eti6c1qc7" path="uid://baj5eti6c1qc7" id="1_sl21n"]
+[ext_resource type="Texture2D" uid="uid://dqluf75yfdgu6" path="res://art_src/FoodTrader.png" id="2_q1pyh"]
+
+[resource]
+script = ExtResource("1_sl21n")
+type_id = "food"
+display_name = "Food Caravan"
+sprite = ExtResource("2_q1pyh")
+speed_modifier = 1.3
+capacity_modifier = 0.8
+starting_money_multiplier = 0.5
+preferred_tags = Array[StringName]([&"food"])
+metadata/_custom_type_script = "uid://baj5eti6c1qc7"

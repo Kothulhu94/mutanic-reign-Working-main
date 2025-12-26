@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://dh8v2w5n3kpqr"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_nv5kt"]
+
+[resource]
+script = ExtResource("1_nv5kt")
+id = &"IronOre"
+display_name = "Iron Ore"
+tags = Array[StringName]([&"material", &"mineral", &"ingredient"])
+base_price = 9.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://cs4uc2kip3txr"]
+
+[ext_resource type="Script" uid="uid://vrxl3jro8k38" path="uid://vrxl3jro8k38" id="1_nd8pd"]
+[ext_resource type="Texture2D" uid="uid://be5gjqh8vvhy5" path="res://art_src/AloeFarm.png" id="2_7tgkm"]
+
+[node name="AloeGarden" type="Node2D"]
+script = ExtResource("1_nd8pd")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_7tgkm")

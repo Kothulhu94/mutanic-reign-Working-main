@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://bmxp7r3k2yq4n"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_zt7mw"]
+
+[resource]
+script = ExtResource("1_zt7mw")
+id = &"RawCrystal"
+display_name = "Raw Crystal"
+tags = Array[StringName]([&"material", &"mineral", &"ingredient"])
+base_price = 14.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

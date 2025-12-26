@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://c9x8n5kq8wmvp"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"unwavering_loyalty"
+display_name = "Unwavering Loyalty"
+description = "Troops will fight at 75% morale threshold instead of fleeing."
+domain_id = &"Leadership"
+tier = 2
+max_rank = 10
+primary_attribute = &"Might"
+secondary_attribute = &"Willpower"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [0.75, 0.73, 0.71, 0.69, 0.67, 0.65, 0.63, 0.61, 0.59, 0.55]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"morale_threshold"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"sustaining_morale"
+xp_trigger_description = "Gain XP when maintaining troop loyalty in dire situations"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"battlefield_inspiration"]
+unlocks_system = ""

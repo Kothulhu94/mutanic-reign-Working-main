@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://cx5n8fq2pmwjt"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"relic_restoration"
+display_name = "Relic Restoration"
+description = "Repair broken artifacts. Active ability with 15 cycle cooldown."
+domain_id = &"ArtifactWeapons"
+tier = 3
+max_rank = 10
+primary_attribute = &"Intellect"
+secondary_attribute = &"Willpower"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"artifact_repair"
+is_multiplicative = false
+is_passive = false
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = [15, 15, 15, 15, 15, 12, 12, 10, 10, 8]
+resource_cost_per_rank = [100, 100, 90, 90, 80, 80, 70, 70, 60, 50]
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"restoring_artifacts"
+xp_trigger_description = "Gain XP when successfully restoring broken artifacts"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"relic_maintenance", &"artifact_resonance"]
+unlocks_system = "artifact_repair"

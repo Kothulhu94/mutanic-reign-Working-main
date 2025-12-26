@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://ctw3a07dvimsb"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_ydra6"]
+
+[resource]
+script = ExtResource("1_ydra6")
+id = &"Cotton"
+display_name = "Cotton"
+tags = Array[StringName]([&"luxury", &"flora", &"ingredient"])
+base_price = 6.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

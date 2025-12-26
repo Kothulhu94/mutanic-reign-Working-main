@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Cyborg Commando"
+description = "The pinnacle of infantry. A perfect fusion of cybernetics and elite training."
+tier = 4
+archetype = "Balanced"
+recruitment_cost = 750
+health_bonus = 17
+damage_bonus = 17
+defense_bonus = 16

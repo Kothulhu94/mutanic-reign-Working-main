@@ -1,0 +1,87 @@
+[gd_scene load_steps=4 format=3 uid="uid://dkvn8y7x5nbrq"]
+
+[ext_resource type="Script" uid="uid://7hwqum185vfm" path="uid://7hwqum185vfm" id="1_skill"]
+[ext_resource type="Resource" path="res://data/SkillDatabase.tres" id="2_g7b2q"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skilllist"]
+bg_color = Color(0.12, 0.12, 0.12, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="SkillListUI" type="Control"]
+process_mode = 2
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+accessibility_name = "SkillListUI"
+script = ExtResource("1_skill")
+skill_database = ExtResource("2_g7b2q")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_skilllist")
+accessibility_name = "BackgroundPanel"
+
+[node name="MainLayoutContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+accessibility_name = "MainLayoutContainer"
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="ContentBox" type="VBoxContainer" parent="Panel/MainLayoutContainer"]
+layout_mode = 2
+accessibility_name = "ContentBox"
+
+[node name="TitleLabel" type="Label" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "TitleLabel"
+text = "Skills"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "TitleSeparator"
+
+[node name="TabContainer" type="TabContainer" parent="Panel/MainLayoutContainer/ContentBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+accessibility_name = "SkillTabContainer"
+
+[node name="HSeparator2" type="HSeparator" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "BottomSeparator"
+
+[node name="CloseButton" type="Button" parent="Panel/MainLayoutContainer/ContentBox"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "CloseButton"
+text = "Close"

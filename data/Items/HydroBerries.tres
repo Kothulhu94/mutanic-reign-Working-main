@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://cnvq8h3y7xm5p"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_hb9tx"]
+
+[resource]
+script = ExtResource("1_hb9tx")
+id = &"HydroBerries"
+display_name = "Hydroponic Berries"
+tags = Array[StringName]([&"food", &"flora", &"ingredient"])
+base_price = 8.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

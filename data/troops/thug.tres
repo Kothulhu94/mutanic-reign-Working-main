@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Thug"
+description = "A street fighter who knows how to block a hit."
+tier = 1
+archetype = "Brawler"
+recruitment_cost = 10
+health_bonus = 0
+damage_bonus = 1
+defense_bonus = 2

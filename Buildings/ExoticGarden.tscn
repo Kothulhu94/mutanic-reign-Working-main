@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8p05u2m4wxy0"]
+
+[ext_resource type="Script" path="uid://byvmmk40nmg0l" id="1_exgar"]
+
+[node name="ExoticGarden" type="Node2D"]
+script = ExtResource("1_exgar")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

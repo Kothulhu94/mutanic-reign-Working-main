@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://cta5235m7sjw8"]
+
+[ext_resource type="Script" uid="uid://c6lk86hkxw44e" path="uid://c6lk86hkxw44e" id="1_2bfmn"]
+[ext_resource type="Texture2D" uid="uid://b55jdwjnmus7d" path="res://art_src/HempFarm.png" id="2_ek30s"]
+
+[node name="HempFarm" type="Node2D"]
+script = ExtResource("1_2bfmn")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_ek30s")

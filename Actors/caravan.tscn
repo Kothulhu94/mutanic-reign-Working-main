@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://bgbook0avqvjl"]
+
+[ext_resource type="Script" uid="uid://b2iyabtka0f3x" path="uid://b2iyabtka0f3x" id="1_caravan"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jna1y"]
+size = Vector2(55, 24)
+
+[node name="Caravan" type="Area2D"]
+z_index = 500
+input_pickable = true
+script = ExtResource("1_caravan")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_jna1y")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = 100
+scale = Vector2(0.42969, 0.1875)
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+path_desired_distance = 10.0
+path_max_distance = 50.0
+avoidance_enabled = true
+radius = 0.0
+avoidance_mask = 1

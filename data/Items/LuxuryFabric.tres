@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://d1h5i8v3uy013"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_lxfab"]
+
+[resource]
+script = ExtResource("1_lxfab")
+id = &"LuxuryFabric"
+display_name = "Luxury Fabric"
+tags = Array[StringName]([&"luxury", &"textile", &"processed"])
+base_price = 30.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

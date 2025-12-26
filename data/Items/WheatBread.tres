@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://bsr1hueklq88j"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_utvvb"]
+
+[resource]
+script = ExtResource("1_utvvb")
+id = &"WheatBread"
+display_name = "Wheat bread"
+tags = Array[StringName]([&"food", &"prepared", &"processed"])
+base_price = 24.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

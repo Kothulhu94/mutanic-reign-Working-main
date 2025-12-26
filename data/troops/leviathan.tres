@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Leviathan"
+description = "A vat-grown kaiju in a cybernetic harness. Its hide is incredibly thick, but its attacks are slow and clumsy."
+recruitment_cost = 2000
+health_bonus = 60
+damage_bonus = 10
+defense_bonus = 30

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="SkillDomain" load_steps=11 format=3 uid="uid://domain_religion"]
+
+[ext_resource type="Script" path="uid://kj506ua3it00" id="1"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/BasicPreaching.tres" id="2"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/ReligiousDoctrine.tres" id="3"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/CommunityRituals.tres" id="4"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/MissionaryExpeditions.tres" id="5"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/ReligiousLaw.tres" id="6"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/MartyrdomCulture.tres" id="7"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/DivineAuthority.tres" id="8"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/HolyCrusade.tres" id="9"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/DivineIntervention.tres" id="10"]
+
+[resource]
+script = ExtResource("1")
+domain_id = &"Religion"
+display_name = "Religion"
+description = "Wield spiritual authority through will and wisdom. Convert populations and command divine power."
+primary_attribute = &"Willpower"
+secondary_attribute = &"Intellect"
+skills = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10")]
+bonus_at_rank_5 = "+10% faith generation and conversion rate"
+bonus_at_rank_10 = "+20% faith generation and miracle chance"
+xp_curve_base = 100
+xp_curve_multiplier = 2.0
+perk_unlock_levels = Array[int]([1, 3, 6, 10, 15, 21])
+passive_bonus_description = "+1% Faith Generation per level"

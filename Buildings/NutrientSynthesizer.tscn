@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://c20an6o8qrs12"]
+
+[ext_resource type="Script" path="uid://bw7v44f7wmgsg" id="1_ntsyn"]
+
+[node name="NutrientSynthesizer" type="Node2D"]
+script = ExtResource("1_ntsyn")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

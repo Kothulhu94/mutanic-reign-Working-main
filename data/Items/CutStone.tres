@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://b3y700n5mqtuv"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_ctstn"]
+
+[resource]
+script = ExtResource("1_ctstn")
+id = &"CutStone"
+display_name = "Cut Stone"
+tags = Array[StringName]([&"material", &"construction", &"processed"])
+base_price = 10.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

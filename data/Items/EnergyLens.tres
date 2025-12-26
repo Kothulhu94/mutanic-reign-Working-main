@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://vep0sx4l056"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_nrgln"]
+
+[resource]
+script = ExtResource("1_nrgln")
+id = &"EnergyLens"
+display_name = "Energy Lens"
+tags = Array[StringName]([&"material", &"component", &"processed"])
+base_price = 35.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://crx4n8wq5jk7p"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"overcharge_technique"
+display_name = "Overcharge Technique"
+description = "Activate to deal +50% burst damage, consuming extra charge."
+domain_id = &"ArtifactWeapons"
+tier = 2
+max_rank = 10
+primary_attribute = &"Intellect"
+secondary_attribute = &"Willpower"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 1.00]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"overcharge_burst"
+is_multiplicative = true
+is_passive = false
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = [5, 5, 5, 5, 5, 4, 4, 3, 3, 2]
+resource_cost_per_rank = [20, 20, 20, 20, 15, 15, 15, 10, 10, 10]
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"overcharging_artifacts"
+xp_trigger_description = "Gain XP when using overcharge technique successfully"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"artifact_handling"]
+unlocks_system = ""

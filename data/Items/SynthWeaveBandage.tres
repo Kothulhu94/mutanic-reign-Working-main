@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://c7d1e4saquxy0"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_swband"]
+
+[resource]
+script = ExtResource("1_swband")
+id = &"SynthWeaveBandage"
+display_name = "Synth-Weave Bandage"
+tags = Array[StringName]([&"medical", &"supply", &"processed"])
+base_price = 15.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

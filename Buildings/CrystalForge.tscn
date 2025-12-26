@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://c5b2rar1tuv45"]
+
+[ext_resource type="Script" path="uid://deicb7tusrtfm" id="1_crfrg"]
+
+[node name="CrystalForge" type="Node2D"]
+script = ExtResource("1_crfrg")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

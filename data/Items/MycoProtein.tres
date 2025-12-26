@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://c5f2laj4p8xqw"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_qw8ry"]
+
+[resource]
+script = ExtResource("1_qw8ry")
+id = &"MycoProtein"
+display_name = "Mycelium Protein"
+tags = Array[StringName]([&"food", &"fungi", &"ingredient"])
+base_price = 7.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

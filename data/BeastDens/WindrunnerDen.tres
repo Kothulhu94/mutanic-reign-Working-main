@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BeastDenType" load_steps=3 format=3]
+
+[ext_resource type="Script" path="uid://c5nadgvmicipm" id="1"]
+[ext_resource type="PackedScene" uid="uid://windrunner_antelope" path="res://Beasts/Grassland/WindrunnerAntelope.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+den_name = "Windrunner Herd Grounds"
+normal_beast_scene = ExtResource("2")
+emergency_beast_scene = ExtResource("2")
+spawn_interval_ticks = 1500.0
+emergency_spawn_count = 3
+emergency_health_threshold = 0.5
+base_health = 200
+base_damage = 5
+base_defense = 8
+max_active_beasts = 10

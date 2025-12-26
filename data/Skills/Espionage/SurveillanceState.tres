@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://dx8p5wqn2yk4r"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"surveillance_state"
+display_name = "Surveillance State"
+description = "See all activity within hubs you control. Monitor population movements, resource flows, and detect infiltration attempts in real-time."
+domain_id = &"Espionage"
+tier = 2
+max_rank = 10
+primary_attribute = &"Guile"
+secondary_attribute = &"Intellect"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 1.00]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"surveillance_coverage"
+is_multiplicative = true
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"monitoring_hub_activity"
+xp_trigger_description = "Gain XP when surveillance networks detect threats or gather intelligence within controlled hubs"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"spy_placement"]
+unlocks_system = "surveillance_networks"

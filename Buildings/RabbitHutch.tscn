@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://bvaw08qev15j2"]
+
+[ext_resource type="Script" uid="uid://dmuhh5v7f5tj6" path="uid://dmuhh5v7f5tj6" id="1_dw547"]
+[ext_resource type="Texture2D" uid="uid://dokxrlf0d37tn" path="res://art_src/RabbitHutch.png" id="2_nl7nd"]
+
+[node name="RabbitHutch" type="Node2D"]
+script = ExtResource("1_dw547")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_nl7nd")

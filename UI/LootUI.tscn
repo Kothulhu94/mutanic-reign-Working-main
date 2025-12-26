@@ -1,0 +1,107 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2m7k9x3p5qn8"]
+
+[ext_resource type="Script" path="uid://c8va60qhwoql0" id="1_loot"]
+
+[node name="LootUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_loot")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Loot"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ContentContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="LeftPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentContainer"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="PlayerNameLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentContainer/LeftPanel"]
+layout_mode = 2
+text = "Player"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentContainer/LeftPanel"]
+layout_mode = 2
+
+[node name="PlayerScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentContainer/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerItemList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentContainer/LeftPanel/PlayerScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentContainer"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="DefeatedNameLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentContainer/RightPanel"]
+layout_mode = 2
+text = "Defeated Caravan"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/ContentContainer/RightPanel"]
+layout_mode = 2
+
+[node name="DefeatedScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentContainer/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DefeatedItemList" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentContainer/RightPanel/DefeatedScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="FooterContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TakeAllButton" type="Button" parent="MarginContainer/VBoxContainer/FooterContainer"]
+layout_mode = 2
+text = "Take All"
+
+[node name="DoneButton" type="Button" parent="MarginContainer/VBoxContainer/FooterContainer"]
+layout_mode = 2
+text = "Done"

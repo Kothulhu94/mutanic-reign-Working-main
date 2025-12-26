@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Field Medic"
+description = "Equipped with light armor and nano-bots to bolster allies."
+tier = 2
+archetype = "Support"
+recruitment_cost = 100
+health_bonus = 5
+damage_bonus = 2
+defense_bonus = 3

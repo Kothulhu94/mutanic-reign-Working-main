@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Dreadnought"
+description = "A massive, gene-bulked soldier with redundant organs and hyper-alloy plating."
+tier = 3
+archetype = "Tank"
+recruitment_cost = 300
+health_bonus = 15
+damage_bonus = 3
+defense_bonus = 7

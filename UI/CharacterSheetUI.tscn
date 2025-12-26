@@ -1,0 +1,176 @@
+[gd_scene load_steps=4 format=3 uid="uid://ccjf7l2hvwepv"]
+
+[ext_resource type="Script" uid="uid://bbdwxfua6b0bt" path="uid://bbdwxfua6b0bt" id="1_uqggg"]
+[ext_resource type="PackedScene" uid="uid://dkvn8y7x5nbrq" path="res://UI/SkillListUI.tscn" id="2_dcr2p"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_charsheet"]
+bg_color = Color(0.15, 0.15, 0.15, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="CharacterSheetUI" type="Control"]
+process_mode = 2
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 580.0
+offset_bottom = 380.0
+grow_horizontal = 2
+grow_vertical = 2
+accessibility_name = "CharacterSheetUI"
+script = ExtResource("1_uqggg")
+skill_list_scene = ExtResource("2_dcr2p")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_charsheet")
+accessibility_name = "Backgroundpanel"
+
+[node name="MainLayoutContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+accessibility_name = "MainLayoutContainer"
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="ContentBox" type="VBoxContainer" parent="Panel/MainLayoutContainer"]
+layout_mode = 2
+accessibility_name = "ContentBox"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "LabelContainer"
+
+[node name="CharacterName" type="Label" parent="Panel/MainLayoutContainer/ContentBox/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "CharacterName"
+
+[node name="CharacterLevel" type="Label" parent="Panel/MainLayoutContainer/ContentBox/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "CharacterLevel"
+
+[node name="CombatStatsContainer" type="HBoxContainer" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "CombatStatsContainer"
+theme_override_constants/separation = 10
+
+[node name="HealthStat" type="Label" parent="Panel/MainLayoutContainer/ContentBox/CombatStatsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 0
+text = "❤️ 0"
+
+[node name="Separator1" type="Label" parent="Panel/MainLayoutContainer/ContentBox/CombatStatsContainer"]
+layout_mode = 2
+text = "|"
+
+[node name="DamageStat" type="Label" parent="Panel/MainLayoutContainer/ContentBox/CombatStatsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 0
+text = "⚔️ 0"
+
+[node name="Separator2" type="Label" parent="Panel/MainLayoutContainer/ContentBox/CombatStatsContainer"]
+layout_mode = 2
+text = "|"
+
+[node name="DefenseStat" type="Label" parent="Panel/MainLayoutContainer/ContentBox/CombatStatsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 0
+text = "🛡️ 0"
+
+[node name="HSeparator" type="HSeparator" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "Seperater of labels"
+
+[node name="AtrributeHeader" type="Label" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "AtrributeHeader"
+text = "Attributes"
+
+[node name="AttributeGrid" type="GridContainer" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "AttributeGrid"
+columns = 2
+
+[node name="Might" type="Label" parent="Panel/MainLayoutContainer/ContentBox/AttributeGrid"]
+layout_mode = 2
+accessibility_name = "Might"
+text = "Might:"
+
+[node name="MightValue" type="Label" parent="Panel/MainLayoutContainer/ContentBox/AttributeGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "MightValue"
+
+[node name="Guile" type="Label" parent="Panel/MainLayoutContainer/ContentBox/AttributeGrid"]
+layout_mode = 2
+accessibility_name = "Guile"
+text = "Guile:"
+
+[node name="GuileValue" type="Label" parent="Panel/MainLayoutContainer/ContentBox/AttributeGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "GuileValue"
+
+[node name="Intellect" type="Label" parent="Panel/MainLayoutContainer/ContentBox/AttributeGrid"]
+layout_mode = 2
+accessibility_name = "Intellect"
+text = "Intellect:"
+
+[node name="IntellectValue" type="Label" parent="Panel/MainLayoutContainer/ContentBox/AttributeGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "IntellectValue"
+
+[node name="Willpower" type="Label" parent="Panel/MainLayoutContainer/ContentBox/AttributeGrid"]
+layout_mode = 2
+accessibility_name = "Willpower"
+text = "Willpower:"
+
+[node name="WillpowerValue" type="Label" parent="Panel/MainLayoutContainer/ContentBox/AttributeGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "WillpowerValue"
+
+[node name="CloseSeperater" type="HSeparator" parent="Panel/MainLayoutContainer/ContentBox"]
+layout_mode = 2
+accessibility_name = "CloseSeperater"
+
+[node name="ViewSkillsButton" type="Button" parent="Panel/MainLayoutContainer/ContentBox"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "View Skills"
+text = "View Skills"
+
+[node name="CloseButton" type="Button" parent="Panel/MainLayoutContainer/ContentBox"]
+unique_name_in_owner = true
+layout_mode = 2
+accessibility_name = "Close"
+text = "Close"

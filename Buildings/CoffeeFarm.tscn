@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://oqx237eg2tvt"]
+
+[ext_resource type="Script" uid="uid://b3ckkjbnm7axg" path="uid://b3ckkjbnm7axg" id="1_addc0"]
+[ext_resource type="Texture2D" uid="uid://cb6bb7f4b7wbp" path="res://art_src/CoffeeFarm.png" id="2_tn28l"]
+
+[node name="CoffeeFarm" type="Node2D"]
+script = ExtResource("1_addc0")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tn28l")

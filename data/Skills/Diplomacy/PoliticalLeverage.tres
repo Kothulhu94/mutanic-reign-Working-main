@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://dlxa n4kq7wmvp"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"political_leverage"
+display_name = "Political Leverage"
+description = "Influence faction decisions (5 cycle cooldown active ability)."
+domain_id = &"Diplomacy"
+tier = 3
+max_rank = 10
+primary_attribute = &"Guile"
+secondary_attribute = &"Willpower"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"faction_manipulation"
+is_multiplicative = false
+is_passive = false
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = [5, 5, 5, 5, 4, 4, 4, 3, 3, 2]
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"influencing_factions"
+xp_trigger_description = "Gain XP when successfully influencing faction decisions"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"alliance_forging", &"conflict_mediation"]
+unlocks_system = "faction_influence"

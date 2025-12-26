@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SkillDomain" load_steps=10 format=3 uid="uid://cla6rnnlawvbr"]
+
+[ext_resource type="Script" uid="uid://kj506ua3it00" path="uid://kj506ua3it00" id="1"]
+[ext_resource type="Resource" uid="uid://c8vw5kn7qxpm2" path="res://data/Skills/Trading/MarketAnalysis.tres" id="2"]
+[ext_resource type="Script" uid="uid://bcwtul4idcrmu" path="uid://bcwtul4idcrmu" id="2_m544t"]
+[ext_resource type="Resource" uid="uid://djx7n3kq5wmvp" path="res://data/Skills/Trading/CaravanLogistics.tres" id="3"]
+[ext_resource type="Resource" uid="uid://cpx4n8kq7wmv2" path="res://data/Skills/Trading/NegotiationTactics.tres" id="4"]
+[ext_resource type="Resource" uid="uid://bwk7n2qx5pmv8" path="res://data/Skills/Trading/MarketMonopoly.tres" id="5"]
+[ext_resource type="Resource" uid="uid://cyan7kq4wmvp2" path="res://data/Skills/Trading/EstablishedRoutes.tres" id="6"]
+[ext_resource type="Resource" uid="uid://dkx5n7q8wmvp3" path="res://data/Skills/Trading/MasterMerchant.tres" id="7"]
+[ext_resource type="Resource" uid="uid://cpx8n5kq7wmjt" path="res://data/Skills/Trading/EconomicDominance.tres" id="8"]
+
+[resource]
+script = ExtResource("1")
+domain_id = &"Trading"
+display_name = "Trading"
+description = "Dominate markets through cunning and determination. Control trade networks and accumulate wealth."
+primary_attribute = &"Guile"
+secondary_attribute = &"Willpower"
+skills = Array[ExtResource("2_m544t")]([ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("6"), ExtResource("7"), ExtResource("8")])
+bonus_at_rank_5 = "+10% trade profits and caravan speed"
+bonus_at_rank_10 = "+20% trade profits and market influence"
+xp_curve_base = 100
+xp_curve_multiplier = 2.0
+perk_unlock_levels = Array[int]([1, 3, 6, 10, 15, 21])
+passive_bonus_description = "-0.05 Buy Cost, +0.05 Sell Value per level"

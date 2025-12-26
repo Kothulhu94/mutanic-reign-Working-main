@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://d4k8l1y6x1346"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_orchpf"]
+
+[resource]
+script = ExtResource("1_orchpf")
+id = &"OrchidPerfume"
+display_name = "Orchid Perfume"
+tags = Array[StringName]([&"luxury", &"cosmetic", &"processed"])
+base_price = 110.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

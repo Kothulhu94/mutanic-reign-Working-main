@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://cttkx1kfbqtg3"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_xun4h"]
+
+[resource]
+script = ExtResource("1_xun4h")
+id = &"Wheat"
+display_name = "Wheat"
+tags = Array[StringName]([&"food", &"flora", &"ingredient"])
+base_price = 10.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

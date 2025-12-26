@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://cy5k8m3p4xn2r"]
+
+[ext_resource type="Script" uid="uid://b0cl3bb2sqsqk" path="uid://b0cl3bb2sqsqk" id="1_beastden"]
+[ext_resource type="Texture2D" uid="uid://b7wxckf0blrx3" path="res://art_src/Hub.png" id="2_den"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_den"]
+radius = 52.5
+
+[node name="BeastDen" type="Area2D"]
+input_pickable = true
+script = ExtResource("1_beastden")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.7, 0.3, 0.3, 1)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("2_den")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_den")

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://b4djsyko0chwf"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"salvage_operations"
+display_name = "Salvage Operations"
+description = "Recover +50% materials when demolishing buildings or scrapping items. Reduces waste and returns valuable resources."
+domain_id = &"Craftsmanship"
+tier = 2
+max_rank = 10
+primary_attribute = &"Might"
+secondary_attribute = &"Intellect"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 1.00]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"material_recovery"
+is_multiplicative = true
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"demolishing_buildings"
+xp_trigger_description = "Gain XP when demolishing buildings or scrapping items"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"construction_basics"]
+unlocks_system = ""

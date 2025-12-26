@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="DomainSpec" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://c1txl1fmrp17a" id="1_artifact"]
+
+[resource]
+script = ExtResource("1_artifact")
+domain_id = &"ArtifactWeapons"
+display_name = "Artifact Weapons"
+primary_attribute = &"Intellect"
+secondary_attribute = &"Willpower"

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0g7v4w6y01a0"]
+
+[ext_resource type="Script" path="uid://jopf2yf80afs" id="1_stmlb"]
+
+[node name="StimLab" type="Node2D"]
+script = ExtResource("1_stmlb")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://b1qhfn7u8rq7j"]
+
+[ext_resource type="Script" uid="uid://devgl2tptea3b" path="uid://devgl2tptea3b" id="1_uujtf"]
+[ext_resource type="Texture2D" uid="uid://drr2wn1c03kvl" path="res://art_src/StoneQuarry.png" id="2_qor4d"]
+
+[node name="StoneQuarry" type="Node2D"]
+script = ExtResource("1_uujtf")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_qor4d")

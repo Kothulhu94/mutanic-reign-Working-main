@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://bfrihvjaabepr"]
+
+[ext_resource type="Script" uid="uid://bcm5u3o6r7sda" path="uid://bcm5u3o6r7sda" id="1_5ytpg"]
+[ext_resource type="Texture2D" uid="uid://b00ccxtdmvur4" path="res://art_src/CottonFarm.png" id="2_53p18"]
+
+[node name="CottonFarm" type="Node2D"]
+script = ExtResource("1_5ytpg")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_53p18")

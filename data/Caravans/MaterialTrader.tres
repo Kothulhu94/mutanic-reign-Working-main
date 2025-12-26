@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CaravanType" load_steps=3 format=3 uid="uid://bl0n1whf7nvp5"]
+
+[ext_resource type="Script" uid="uid://baj5eti6c1qc7" path="uid://baj5eti6c1qc7" id="1_qrrmi"]
+[ext_resource type="Texture2D" uid="uid://d3lcxe65c6n83" path="res://art_src/MaterialTrader.png" id="2_8863v"]
+
+[resource]
+script = ExtResource("1_qrrmi")
+type_id = "material"
+display_name = "Material Hauler"
+sprite = ExtResource("2_8863v")
+speed_modifier = 0.8
+capacity_modifier = 1.5
+starting_money_multiplier = 0.8
+preferred_tags = Array[StringName]([&"material"])
+metadata/_custom_type_script = "uid://baj5eti6c1qc7"

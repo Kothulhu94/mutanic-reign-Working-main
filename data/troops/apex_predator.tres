@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Apex Predator"
+description = "A genetically engineered hunter that sacrifices all defense for unmatched regenerative and offensive capability."
+recruitment_cost = 2000
+health_bonus = 45
+damage_bonus = 55
+defense_bonus = 0

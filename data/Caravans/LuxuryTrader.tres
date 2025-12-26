@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CaravanType" load_steps=3 format=3 uid="uid://cey8s0xhonm0l"]
+
+[ext_resource type="Script" uid="uid://baj5eti6c1qc7" path="uid://baj5eti6c1qc7" id="1_2pp1m"]
+[ext_resource type="Texture2D" uid="uid://yhonepbdiqi7" path="res://art_src/LuxuryTrader.png" id="2_eq8fq"]
+
+[resource]
+script = ExtResource("1_2pp1m")
+type_id = "luxury"
+display_name = "Luxury Merchant"
+sprite = ExtResource("2_eq8fq")
+speed_modifier = 1.2
+capacity_modifier = 0.7
+starting_money_multiplier = 2.0
+preferred_tags = Array[StringName]([&"luxury"])
+metadata/_custom_type_script = "uid://baj5eti6c1qc7"

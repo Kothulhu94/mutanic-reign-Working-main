@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://d3ky0p7oarsux"]
+
+[ext_resource type="Script" path="uid://c04j42qscoign" id="1_cryst"]
+
+[node name="CrystalHarvester" type="Node2D"]
+script = ExtResource("1_cryst")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

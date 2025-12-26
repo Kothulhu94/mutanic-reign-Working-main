@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://c4n8pfx1w2qmt"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"artillery_master"
+display_name = "Artillery Master"
+description = "Deal 10% of enemy health as pre-battle damage with heavy artillery."
+domain_id = &"Ranged"
+tier = 3
+max_rank = 10
+primary_attribute = &"Guile"
+secondary_attribute = &"Intellect"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.20]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"artillery_pre_battle"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"artillery_strikes"
+xp_trigger_description = "Gain XP when using heavy artillery or siege weapons"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"siege_engineering", &"suppression_tactics"]
+unlocks_system = ""

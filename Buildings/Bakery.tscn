@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://bntrtl1i63s6"]
+
+[ext_resource type="Script" uid="uid://dg0unhdffwk1e" path="uid://dg0unhdffwk1e" id="1_eljy1"]
+[ext_resource type="Texture2D" uid="uid://cpnhhdy08cymt" path="res://art_src/Bakery.png" id="2_3hec1"]
+[ext_resource type="Resource" uid="uid://dpu7dor4326r3" path="res://data/Items/ItemsCatalog.tres" id="2_dhsr7"]
+
+[node name="Bakery" type="Node2D"]
+script = ExtResource("1_eljy1")
+required_tags = Array[StringName]([&"food", &"flora"])
+item_db = ExtResource("2_dhsr7")
+base_cycle_time_ticks = 3.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_3hec1")

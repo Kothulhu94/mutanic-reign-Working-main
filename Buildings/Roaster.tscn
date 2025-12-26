@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://d2jax6y8a1b12"]
+
+[ext_resource type="Script" path="uid://dxmnm4t6eo5ce" id="1_rstr"]
+
+[node name="Roaster" type="Node2D"]
+script = ExtResource("1_rstr")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

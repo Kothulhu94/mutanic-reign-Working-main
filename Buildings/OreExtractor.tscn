@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://c4l01q8m0stvy"]
+
+[ext_resource type="Script" path="uid://5apcteijnljl" id="1_orext"]
+
+[node name="OreExtractor" type="Node2D"]
+script = ExtResource("1_orext")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

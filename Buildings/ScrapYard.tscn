@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://ct34v1asnddtc"]
+
+[ext_resource type="Script" uid="uid://c8eajcf6235cs" path="uid://c8eajcf6235cs" id="1_2v2ws"]
+[ext_resource type="Texture2D" uid="uid://d2nl84dn1ovmy" path="res://art_src/Scrapyard.png" id="2_v7cv5"]
+
+[node name="ScrapYard" type="Node2D"]
+script = ExtResource("1_2v2ws")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_v7cv5")

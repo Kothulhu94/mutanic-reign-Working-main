@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://dlo5qq3b6c2xy"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"flanking_commander"
+display_name = "Flanking Commander"
+description = "Companions can bypass enemy defenses when flanking."
+domain_id = &"Melee"
+tier = 2
+max_rank = 10
+primary_attribute = &"Might"
+secondary_attribute = &"Willpower"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"companion_flanking"
+is_multiplicative = false
+is_passive = true
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = []
+resource_cost_per_rank = []
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"companion_flanking"
+xp_trigger_description = "Gain XP when companions successfully flank enemies"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"aggressive_tactics"]
+unlocks_system = ""

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Obliterator"
+description = "A gene-spliced super-soldier with regenerative tissue and a seismic hammer."
+tier = 4
+archetype = "Brawler"
+recruitment_cost = 750
+health_bonus = 25
+damage_bonus = 15
+defense_bonus = 10

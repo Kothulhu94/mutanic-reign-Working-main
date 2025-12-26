@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Marine"
+description = "Standard line infantry with kinetic armor and a pulse rifle."
+tier = 2
+archetype = "Balanced"
+recruitment_cost = 100
+health_bonus = 3
+damage_bonus = 4
+defense_bonus = 3

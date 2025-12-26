@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8e5t2u4wxy78"]
+
+[ext_resource type="Script" path="uid://ckxmfvrw4a860" id="1_apoth"]
+
+[node name="Apothecary" type="Node2D"]
+script = ExtResource("1_apoth")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

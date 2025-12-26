@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://d5xn8wp2q4yk7"]
+
+[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+
+[resource]
+script = ExtResource("1")
+skill_id = &"divine_intervention"
+display_name = "Divine Intervention"
+description = "Prevent a disaster event from occurring. Active miracle ability that can avert catastrophe. 10 cycle cooldown for divine protection."
+domain_id = &"Religion"
+tier = 3
+max_rank = 10
+primary_attribute = &"Willpower"
+secondary_attribute = &"Intellect"
+primary_attr_scale = 0.75
+secondary_attr_scale = 0.25
+base_effect_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
+effect_type = &"disaster_prevention"
+is_multiplicative = false
+is_passive = false
+effect_cap_per_rank = []
+cooldown_cycles_per_rank = [10, 10, 10, 10, 10, 9, 9, 8, 8, 7]
+resource_cost_per_rank = [500, 500, 500, 500, 500, 475, 475, 450, 450, 425]
+effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+xp_trigger = &"invoking_divine_power"
+xp_trigger_description = "Gain XP when invoking divine intervention to protect your people from catastrophe"
+uses_difficulty_multiplier = true
+prerequisite_skill_ids = [&"divine_authority", &"holy_crusade"]
+unlocks_system = "divine_miracles"

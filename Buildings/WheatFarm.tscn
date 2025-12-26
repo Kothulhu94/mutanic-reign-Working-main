@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://uqlvck4omyo4"]
+
+[ext_resource type="Script" uid="uid://cjv5tcti0ln7r" path="uid://cjv5tcti0ln7r" id="1_l54fn"]
+[ext_resource type="Texture2D" uid="uid://3v60o0cob7dh" path="res://art_src/Wheat_Farm.png" id="2_yw640"]
+
+[node name="WheatFarm" type="Node2D"]
+script = ExtResource("1_l54fn")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_yw640")

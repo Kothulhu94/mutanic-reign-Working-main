@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDef" load_steps=2 format=3 uid="uid://b6c0d3q8ptwxy"]
+
+[ext_resource type="Script" uid="uid://s1txlrx5unui" path="uid://s1txlrx5unui" id="1_irning"]
+
+[resource]
+script = ExtResource("1_irning")
+id = &"IronIngot"
+display_name = "Iron Ingot"
+tags = Array[StringName]([&"material", &"metal", &"processed"])
+base_price = 22.0
+metadata/_custom_type_script = "uid://s1txlrx5unui"

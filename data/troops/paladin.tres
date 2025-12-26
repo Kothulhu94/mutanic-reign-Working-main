@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TroopType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="uid://dhodmn1dqapb2" id="1"]
+
+[resource]
+script = ExtResource("1")
+troop_name = "Paladin"
+description = "An elite warrior in powered exo-armor, wielding a heavy plasma rifle."
+tier = 3
+archetype = "Balanced"
+recruitment_cost = 300
+health_bonus = 8
+damage_bonus = 9
+defense_bonus = 8
