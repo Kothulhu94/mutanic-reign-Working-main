@@ -16,7 +16,7 @@ var home_position: Vector2 = Vector2.ZERO
 var wander_timer: float = 0.0
 var current_target: Node2D = null
 
-enum AIState { WANDERING, CHASING }
+enum AIState {WANDERING, CHASING}
 var ai_state: AIState = AIState.WANDERING
 
 func _ready() -> void:
@@ -67,10 +67,9 @@ func _ai_chase(_delta: float) -> void:
 		ai_state = AIState.WANDERING
 		return
 
-	if nav_agent != null:
-		nav_agent.target_position = current_target.global_position
+	move_to(current_target.global_position)
 
-	_move_toward_nav_target()
+	update_movement(_delta)
 
 func _find_nearby_enemy() -> Node2D:
 	var player_bus: Node2D = get_tree().get_first_node_in_group("player")
@@ -89,24 +88,13 @@ func _find_nearby_enemy() -> Node2D:
 	return null
 
 func _set_new_wander_target() -> void:
-	if nav_agent == null:
-		return
-
 	var random_angle: float = randf_range(0.0, TAU)
 	var random_distance: float = randf_range(100.0, WANDER_RADIUS)
 	var offset: Vector2 = Vector2(cos(random_angle), sin(random_angle)) * random_distance
 	var target_pos: Vector2 = home_position + offset
 
-	nav_agent.target_position = target_pos
+	move_to(target_pos)
 
 func _move_toward_nav_target() -> void:
-	if nav_agent == null:
-		return
-
-	if nav_agent.is_navigation_finished():
-		return
-
-	var next_pos: Vector2 = nav_agent.get_next_path_position()
-	var direction: Vector2 = (next_pos - global_position).normalized()
-
-	global_position += direction * movement_speed * get_physics_process_delta_time()
+	# Deprecated helper, but kept redirecting to update_movement just in case
+	update_movement(get_physics_process_delta_time())

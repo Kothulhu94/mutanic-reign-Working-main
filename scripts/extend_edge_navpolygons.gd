@@ -42,7 +42,7 @@ func _run():
 	print("Complete! Extended %d navigation polygons." % modified_count)
 	print("Please save the scene to persist changes.")
 
-func extend_navigation_polygon(nav_region: NavigationRegion2D, chunk_x: int, chunk_y: int) -> bool:
+func extend_navigation_polygon(nav_region: NavigationRegion2D, chunk_x: int, _chunk_y: int) -> bool:
 	var nav_poly = nav_region.navigation_polygon
 	if not nav_poly:
 		return false

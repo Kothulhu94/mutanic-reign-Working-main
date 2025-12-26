@@ -226,10 +226,6 @@ func _update_cart_for_troop(troop_id: StringName, new_qty: int) -> void:
 	var current_troop_count: int = sheet.get_total_troop_count()
 	var max_capacity: int = sheet.max_troop_capacity
 
-	var total_cart_qty: int = 0
-	for qty: int in recruitment_cart.values():
-		total_cart_qty += qty
-
 	var available_capacity: int = max_capacity - current_troop_count
 
 	var hub_stock: int = _get_hub_stock(troop_id)
@@ -304,7 +300,6 @@ func _on_confirm_pressed() -> void:
 		return
 
 	var recruits: Array[Dictionary] = []
-	var total_cost: int = 0
 
 	for troop_id: StringName in recruitment_cart.keys():
 		var qty: int = recruitment_cart.get(troop_id, 0)
@@ -324,7 +319,6 @@ func _on_confirm_pressed() -> void:
 		if current_bus.money >= cost:
 			if current_bus.charactersheet.add_troop(troop_id, qty):
 				current_bus.money -= cost
-				total_cost += cost
 
 				if current_hub != null and current_hub.state != null:
 					current_hub.state.troop_stock[troop_id] = hub_stock - qty

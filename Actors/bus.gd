@@ -6,7 +6,6 @@ signal encounter_initiated(attacker: Node2D, defender: Node2D)
 ## Emitted when chase starts
 signal chase_started()
 
-@onready var agent: NavigationAgent2D = $NavigationAgent2D
 @export var move_speed := 200.0
 var charactersheet: CharacterSheet
 var _is_paused: bool = false
@@ -20,9 +19,10 @@ const ENCOUNTER_DISTANCE: float = 60.0
 var _safe_velocity: Vector2 = Vector2.ZERO
 
 # Trading skill tracking
-var _trade_session_value: float = 0.0  # Total PACs traded in current session
-var _hubs_traded_at: Dictionary = {}  # hub_name -> trade_count
-var _last_wealth_check: int = 0  # For EconomicDominance tracking
+var _trade_session_value: float = 0.0 # Total PACs traded in current session
+var _hubs_traded_at: Dictionary = {} # hub_name -> trade_count
+var _last_wealth_check: int = 0 # For EconomicDominance tracking
+
 ## Checks if a specific amount of an item can be added without exceeding limits.
 func can_add_item(item_id: StringName, amount: int) -> bool:
 	if amount <= 0:
@@ -83,8 +83,15 @@ func remove_item(item_id: StringName, amount: int) -> bool:
 			inventory.erase(item_id)
 		# TODO: Emit a signal if UI needs to update inventory display
 		# inventory_changed.emit()
-		return true   
- 
+		return true
+
+###########################################################
+# Pathfinding Migration
+###########################################################
+@export var map_manager: MapManager
+var _current_path: PackedVector2Array = []
+var _path_index: int = 0
+
 func _ready() -> void:
 	charactersheet = CharacterSheet.new()
 	charactersheet.initialize_health()
@@ -101,10 +108,6 @@ func _ready() -> void:
 		charactersheet.health_changed.connect(_on_health_changed)
 		_on_health_changed(charactersheet.current_health, charactersheet.get_effective_health())
 
-	# Connect to NavigationAgent2D avoidance system
-	if agent != null:
-		agent.velocity_computed.connect(_on_velocity_computed)
-
 	# Connect to Timekeeper pause/resume signals
 	var timekeeper: Node = get_node_or_null("/root/Timekeeper")
 	if timekeeper != null:
@@ -112,11 +115,28 @@ func _ready() -> void:
 			timekeeper.paused.connect(_on_timekeeper_paused)
 		if timekeeper.has_signal("resumed"):
 			timekeeper.resumed.connect(_on_timekeeper_resumed)
+			
+	# Attempt to find MapManager if not assigned
+	if map_manager == null:
+		map_manager = get_node_or_null("/root/Overworld/MapManager")
+		if map_manager == null:
+			# Try to find it in the parent (Overworld)
+			var p = get_parent()
+			if p and p.has_node("MapManager"):
+				map_manager = p.get_node("MapManager")
+
+func move_to(target_pos: Vector2):
+	if map_manager == null:
+		push_warning("Bus: No MapManager assigned!")
+		return
+		
+	# Ask the MapManager for a path
+	_current_path = map_manager.get_path_world(global_position, target_pos)
+	_path_index = 0
 
 func _physics_process(_delta: float) -> void:
 	# Don't move if paused
 	if _is_paused:
-		velocity = Vector2.ZERO
 		return
 
 	# Check if we've reached the chase target
@@ -125,27 +145,34 @@ func _physics_process(_delta: float) -> void:
 		if distance_to_target <= ENCOUNTER_DISTANCE:
 			var target: Node2D = _chase_target
 			_chase_target = null
-			velocity = Vector2.ZERO
+			_current_path = [] # Stop moving
 			print("[Bus] Encounter triggered! Distance: %.1f" % distance_to_target)
 			encounter_initiated.emit(self, target)
 			return
 
 		# Update navigation target if chasing
-		if agent != null:
-			agent.target_position = _chase_target.global_position
+		# For grid movement, we might want to repath occasionally, but for now let's just 
+		# periodically call move_to(_chase_target.global_position) or similar logic if needed.
+		pass
 
-	if agent:
-		var next: Vector2 = agent.get_next_path_position()
-		var to_next: Vector2 = next - global_position
-		if to_next.length() > 1.0:
-			var desired_velocity: Vector2 = to_next.normalized() * move_speed
-			agent.set_velocity(desired_velocity)
-		else:
-			agent.set_velocity(Vector2.ZERO)
-	else:
-		velocity = Vector2.ZERO
+	# Movement Logic
+	if _current_path.is_empty():
+		return
 
-	velocity = _safe_velocity
+	if _path_index >= _current_path.size():
+		_current_path = [] # Path finished
+		return
+
+	var next_point = _current_path[_path_index]
+	var distance = global_position.distance_to(next_point)
+
+	# Check if we reached the point
+	if distance < 5.0:
+		_path_index += 1
+		return
+
+	# Move towards point
+	velocity = global_position.direction_to(next_point) * move_speed
 	move_and_slide()
 
 func _on_timekeeper_paused() -> void:

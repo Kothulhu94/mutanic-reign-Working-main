@@ -2,8 +2,8 @@ extends Node
 
 ## Resolves a single combat round between two actors
 func resolve_combat_round(actor_a: Node2D, actor_b: Node2D) -> void:
-	var actor_a_name: String = "null" if actor_a == null else actor_a.name
-	var actor_b_name: String = "null" if actor_b == null else actor_b.name
+	var actor_a_name: String = "null" if actor_a == null else str(actor_a.name)
+	var actor_b_name: String = "null" if actor_b == null else str(actor_b.name)
 	print("[CombatManager] resolve_combat_round called: %s vs %s" % [actor_a_name, actor_b_name])
 
 	if actor_a == null or actor_b == null:
@@ -43,7 +43,7 @@ func resolve_combat_round(actor_a: Node2D, actor_b: Node2D) -> void:
 	_calculate_troop_losses(b_sheet, actor_b.name)
 
 ## Calculates and applies troop losses based on health percentage remaining
-func _calculate_troop_losses(sheet: CharacterSheet, actor_name: String) -> void:
+func _calculate_troop_losses(sheet: CharacterSheet, _actor_name: String) -> void:
 	if sheet == null:
 		return
 

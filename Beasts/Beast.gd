@@ -9,7 +9,10 @@ signal player_initiated_chase(beast: Beast)
 var charactersheet: CharacterSheet = null
 
 ## Navigation for movement AI
-@onready var nav_agent: NavigationAgent2D = $NavigationAgent2D
+# @onready var nav_agent: NavigationAgent2D = $NavigationAgent2D <- Removed
+var map_manager: MapManager
+var _current_path: PackedVector2Array = []
+var _path_index: int = 0
 
 ## Movement configuration
 @export var movement_speed: float = 80.0
@@ -27,8 +30,16 @@ var _is_paused: bool = false
 func _ready() -> void:
 	add_to_group("beasts")
 
-	if nav_agent != null:
-		nav_agent.navigation_layers = navigation_layers
+	# Find MapManager
+	map_manager = get_node_or_null("/root/Overworld/MapManager")
+	if map_manager == null:
+		# Fallback search
+		var p = get_parent()
+		while p != null:
+			if p.has_node("MapManager"):
+				map_manager = p.get_node("MapManager")
+				break
+			p = p.get_parent()
 
 	input_event.connect(_on_input_event)
 
@@ -50,6 +61,30 @@ func _physics_process(delta: float) -> void:
 
 func _update_ai(_delta: float) -> void:
 	pass
+
+# --- Movement API for subclasses ---
+func move_to(target_pos: Vector2) -> void:
+	if map_manager == null:
+		return
+	_current_path = map_manager.get_path_world(global_position, target_pos)
+	_path_index = 0
+
+func update_movement(delta: float) -> void:
+	if _current_path.is_empty():
+		return
+
+	if _path_index >= _current_path.size():
+		return
+
+	var next_point = _current_path[_path_index]
+	var distance = global_position.distance_to(next_point)
+
+	if distance < 5.0:
+		_path_index += 1
+		return
+
+	var direction = global_position.direction_to(next_point)
+	global_position += direction * movement_speed * delta
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton:

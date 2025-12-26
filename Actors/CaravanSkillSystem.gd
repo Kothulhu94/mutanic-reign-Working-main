@@ -54,13 +54,12 @@ func recalculate_bonuses() -> void:
 		# Big bonus
 		speed_bonus += 0.5
 		capacity_bonus += 0.5
-		# Maybe extra price bonus?
-		# price_modifier_bonus += 0.1
+		# Extra price bonus (Selling)
+		price_modifier_bonus += 0.1
 		
 	# MarketMonopoly
 	if trading_state.has_perk(&"market_monopoly"):
-		# price_modifier_bonus += 0.1
-		pass
+		price_modifier_bonus += 0.1
 
 	# --- Exploration Domain ---
 	var exploration_state: DomainState = sheet.get_domain_state(&"Exploration")
@@ -74,7 +73,11 @@ func recalculate_bonuses() -> void:
 		# +1% Party Size (Capacity) per level
 		capacity_bonus += float(leadership_state.current_level) * 0.01
 
-func award_xp(skill_id: StringName, value: float) -> void:
+	# Support for simplified speed bonus if we add it to CaravanState later,
+	# but for now we sync the capacity multiplier.
+	caravan_state.bonus_capacity_multiplier = 1.0 + capacity_bonus
+
+func award_xp(_skill_id: StringName, value: float) -> void:
 	if caravan_state == null or caravan_state.leader_sheet == null:
 		return
 		

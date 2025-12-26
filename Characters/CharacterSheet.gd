@@ -159,9 +159,9 @@ func get_total_troop_bonuses() -> Dictionary:
 
 ## Loads a troop type resource by ID
 func _load_troop_type(troop_id: StringName) -> TroopType:
-	var resource_path: String = "res://data/troops/%s.tres" % troop_id
-	if ResourceLoader.exists(resource_path):
-		return load(resource_path) as TroopType
+	var res_path: String = "res://data/troops/%s.tres" % troop_id
+	if ResourceLoader.exists(res_path):
+		return load(res_path) as TroopType
 	return null
 
 ## Gets the total number of troops recruited

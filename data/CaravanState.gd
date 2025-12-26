@@ -13,13 +13,16 @@ var home_hub_id: StringName = StringName()
 var destination_hub_id: StringName = StringName()
 
 # Trade state
-var inventory: Dictionary = {}  # item_id (StringName) -> count (int)
-var money: int = 0              # PACs available for purchasing
-var profit_this_trip: int = 0   # Track earnings for this round trip
+var inventory: Dictionary = {} # item_id (StringName) -> count (int)
+var money: int = 0 # PACs available for purchasing
+var profit_this_trip: int = 0 # Track earnings for this round trip
 
 # Current journey
-enum Leg { OUTBOUND, RETURN }
+enum Leg {OUTBOUND, RETURN}
 var current_leg: Leg = Leg.OUTBOUND
+
+# Bonus multiplier set by CaravanSkillSystem
+@export var bonus_capacity_multiplier: float = 1.0
 
 func _init(home: StringName = StringName(), dest: StringName = StringName(), starting_money: int = 0, type: CaravanType = null, p_leader_sheet: CharacterSheet = null) -> void:
 	home_hub_id = home
@@ -39,15 +42,8 @@ func get_max_capacity() -> int:
 		return 1000
 	var base: int = caravan_type.base_capacity
 
-	# Apply capacity bonus from CaravanLogistics skill
-	if leader_sheet != null:
-		var logistics_rank: int = leader_sheet.get_skill_rank(&"caravan_logistics")
-		if logistics_rank > 0:
-			# Simplified: 2.5% per rank (actual skill: 25-45% across ranks)
-			var bonus: float = float(logistics_rank) * 0.025
-			base = int(float(base) * (1.0 + bonus))
-
-	return base
+	# Apply capacity bonus multiplier (calculated by CaravanSkillSystem)
+	return int(float(base) * bonus_capacity_multiplier)
 
 func can_carry_more() -> bool:
 	return get_total_cargo_weight() < get_max_capacity()

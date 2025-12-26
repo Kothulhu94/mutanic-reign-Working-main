@@ -37,8 +37,27 @@ var _encounter_ui: Control
 var _loot_ui: Control
 var _game_over_ui: Control
 
+# Grid-Based Pathfinding
+var map_manager: MapManager
+
 func _ready() -> void:
+	# Initialize MapLoader to load chunked map
+	var map_loader_script = load("res://scripts/MapLoader.gd")
+	if map_loader_script:
+		var map_loader = Node2D.new()
+		map_loader.set_script(map_loader_script)
+		map_loader.name = "MapLoader"
+		add_child(map_loader)
+		move_child(map_loader, 0) # Ensure map is behind everything
+		print("Overworld: MapLoader initialized.")
+
 	await _await_nav_ready()
+	
+	# Find MapManager (Assumes user added it to scene or we instantiate it?)
+	# User instructions: "Create a Node2D in your main scene... named MapManager"
+	map_manager = get_node_or_null("MapManager") as MapManager
+	if map_manager == null:
+		push_warning("Overworld: MapManager node not found! Please create it.")
 
 	if path_line == null:
 		path_line = Line2D.new()

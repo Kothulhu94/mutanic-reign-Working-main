@@ -218,10 +218,10 @@ func from_dict(data: Dictionary) -> void:
 
 
 ## Signal handlers
-func _on_attribute_leveled(attribute_name: StringName, new_level: int) -> void:
+func _on_attribute_leveled(_attribute_name: StringName, _new_level: int) -> void:
 	pass # Can be used for notifications later
 
-func _on_skill_ranked_up(skill_id: StringName, new_rank: int) -> void:
+func _on_skill_ranked_up(_skill_id: StringName, _new_rank: int) -> void:
 	pass # Can be used for notifications later
 
 func _on_domain_leveled_up(domain_id: StringName, new_level: int) -> void:

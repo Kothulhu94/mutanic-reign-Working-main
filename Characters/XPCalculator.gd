@@ -21,8 +21,8 @@ const MIN_DIFFICULTY: float = 0.0
 const MAX_DIFFICULTY: float = 1.0
 
 # Challenge modifier parameters
-const CHALLENGE_SWEET_SPOT: float = 0.8  # Task difficulty / attribute level sweet spot
-const CHALLENGE_BONUS_MAX: float = 1.5   # Max bonus for challenging tasks
+const CHALLENGE_SWEET_SPOT: float = 0.8 # Task difficulty / attribute level sweet spot
+const CHALLENGE_BONUS_MAX: float = 1.5 # Max bonus for challenging tasks
 const CHALLENGE_PENALTY_MAX: float = 0.5 # Min penalty for trivial tasks
 
 ## Calculate skill XP based on event type, difficulty, and current skill rank
@@ -30,7 +30,7 @@ const CHALLENGE_PENALTY_MAX: float = 0.5 # Min penalty for trivial tasks
 ## difficulty: 0.0 to 1.0 (task difficulty)
 ## skill_rank: Current rank of the skill
 ## Returns: Skill XP amount
-static func calculate_skill_xp(base_xp: int, event: String, difficulty: float, skill_rank: int) -> int:
+static func calculate_skill_xp(base_xp: int, event: String, difficulty: float, _skill_rank: int) -> int:
 	var multiplier: float = _get_event_multiplier(event)
 	var difficulty_clamped: float = clampf(difficulty, MIN_DIFFICULTY, MAX_DIFFICULTY)
 
