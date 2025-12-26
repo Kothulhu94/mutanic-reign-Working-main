@@ -20,7 +20,4 @@ z_index = 1000
 scale = Vector2(0.35, 0.35)
 texture = ExtResource("2_beast_icon")
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
-path_desired_distance = 10.0
-path_max_distance = 50.0
-avoidance_enabled = true
+

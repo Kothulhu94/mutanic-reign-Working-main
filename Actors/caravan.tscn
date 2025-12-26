@@ -17,9 +17,4 @@ shape = SubResource("RectangleShape2D_jna1y")
 z_index = 100
 scale = Vector2(0.42969, 0.1875)
 
-[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
-path_desired_distance = 10.0
-path_max_distance = 50.0
-avoidance_enabled = true
-radius = 0.0
-avoidance_mask = 1
+

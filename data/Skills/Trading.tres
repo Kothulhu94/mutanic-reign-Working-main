@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://Characters/Perk.gd" id="1_dggey"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/MarketAnalysis.tres" id="2_wxfxv"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/CaravanLogistics.tres" id="3_3224u"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/NegotiationTactics.tres" id="4_vrve1"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/EstablishedRoutes.tres" id="5_1ffvi"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/MasterMerchant.tres" id="6_5yqot"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/EconomicDominance.tres" id="7_x0bui"]
+[ext_resource type="Script" path="res://Characters/Skill.gd" id="8_ysstf"]
+
+[resource]
+script = ExtResource("8_ysstf")
+id = &"trading"
+display_name = "Trading"
+description = "Dominate markets through cunning and determination."
+primary_attribute = &"Guile"
+secondary_attribute = &"Willpower"
+available_perks = Array[ExtResource("1_dggey")]([ExtResource("2_wxfxv"), ExtResource("3_3224u"), ExtResource("4_vrve1"), ExtResource("5_1ffvi"), ExtResource("6_5yqot"), ExtResource("7_x0bui")])

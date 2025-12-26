@@ -80,11 +80,14 @@ func _ready() -> void:
 		if timekeeper.has_signal("resumed"):
 			timekeeper.resumed.connect(_on_timekeeper_resumed)
 
-func setup(home: Hub, state: CaravanState, db: ItemDB, hubs: Array[Hub]) -> void:
+func setup(home: Hub, state: CaravanState, db: ItemDB, hubs: Array[Hub], map_mgr: MapManager) -> void:
 	home_hub = home
 	caravan_state = state
 	item_db = db
 	all_hubs = hubs
+	
+	if map_mgr == null:
+		push_error("Caravan: MapManager passed to setup() is null!")
 
 	# Initialize health for combat
 	if caravan_state != null and caravan_state.leader_sheet != null:
@@ -110,8 +113,8 @@ func setup(home: Hub, state: CaravanState, db: ItemDB, hubs: Array[Hub]) -> void
 	if skill_system:
 		final_speed *= (1.0 + skill_system.speed_bonus)
 	
-	var nav_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
-	navigator.setup(self, nav_agent, final_speed)
+	# Inject MapManager
+	navigator.setup(self, map_mgr, final_speed)
 	
 	if caravan_state.caravan_type != null:
 		navigator.set_navigation_layers(caravan_state.caravan_type.navigation_layers)

@@ -96,5 +96,6 @@ func _set_new_wander_target() -> void:
 	move_to(target_pos)
 
 func _move_toward_nav_target() -> void:
-	# Deprecated helper, but kept redirecting to update_movement just in case
-	update_movement(get_physics_process_delta_time())
+	# Deprecated helper, using update_movement directly
+	var delta = get_physics_process_delta_time()
+	update_movement(delta)

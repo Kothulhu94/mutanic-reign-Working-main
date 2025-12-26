@@ -2,16 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by61ua3u4gdwg"
-valid=false
+uid="uid://b7phb7b6cnuk2"
+path="res://.godot/imported/debug_red_square.svg-70df2f1d6fb03741629bf9a54faa6cfe.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://assets/TheMap.png"
+source_file="res://assets/debug_red_square.svg"
+dest_files=["res://.godot/imported/debug_red_square.svg-70df2f1d6fb03741629bf9a54faa6cfe.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -34,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

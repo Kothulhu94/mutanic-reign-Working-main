@@ -19,7 +19,7 @@ func register_character(character_id: StringName, sheet: CharacterSheet) -> void
 		return
 
 	character_sheets[character_id] = sheet
-	print("[ProgressionManager] Registered character '%s' (%s)" % [character_id, sheet.character_name])
+
 
 ## Get a character's progression sheet by ID
 func get_character_sheet(character_id: StringName) -> CharacterSheet:
@@ -33,7 +33,7 @@ func has_character(character_id: StringName) -> bool:
 func unregister_character(character_id: StringName) -> void:
 	if character_sheets.has(character_id):
 		character_sheets.erase(character_id)
-		print("[ProgressionManager] Unregistered character '%s'" % character_id)
+
 
 ## Get all registered character IDs
 func get_all_character_ids() -> Array[StringName]:
@@ -59,4 +59,3 @@ func load_all_from_dict(data: Dictionary) -> void:
 		var sheet: CharacterSheet = CharacterSheet.new()
 		sheet.from_dict(sheet_data)
 		character_sheets[StringName(character_id)] = sheet
-	print("[ProgressionManager] Loaded %d characters" % character_sheets.size())

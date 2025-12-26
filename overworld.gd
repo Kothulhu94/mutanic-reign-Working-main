@@ -1,13 +1,13 @@
 extends Node2D
 
-@export var bus_scene: PackedScene = preload("res://Actors/Bus.tscn")
-@export var camera_scene: PackedScene = preload("res://Actors/PlayerCamera.tscn")
-@export var caravan_scene: PackedScene = preload("res://Actors/Caravan.tscn")
+@export var bus_scene: PackedScene = preload("uid://c14uenn8n47fb")
+@export var camera_scene: PackedScene = preload("uid://ckanwjybdtmp4")
+@export var caravan_scene: PackedScene = preload("uid://bgbook0avqvjl")
 
 @export var map_origin: Vector2 = Vector2.ZERO
-@export var map_size: Vector2 = Vector2(8192, 8192)
-@export var chunk_size: Vector2i = Vector2i(512, 512)
-@export var bus_spawn_point: Vector2 = Vector2(125, 125)
+@export var map_size: Vector2 = Vector2(16384, 16384)
+
+@export var bus_spawn_point: Vector2 = Vector2(6000, 10830)
 
 const NAV_LAYERS: int = 1 # keep in lockstep with the NavigationAgent2D
 
@@ -17,7 +17,7 @@ const NAV_LAYERS: int = 1 # keep in lockstep with the NavigationAgent2D
 # Caravan system
 @export var item_db: ItemDB
 @export var caravan_types: Array[CaravanType] = []
-@export var caravan_spawn_interval: float = 30.0 # Check for spawning every 30 seconds
+@export var caravan_spawn_interval: float = 1.0 # Check for spawning every 30 seconds
 var caravan_spawn_timer: float = 0.0
 var active_caravans: Array[Caravan] = []
 var _caravan_type_counters: Dictionary = {}
@@ -27,7 +27,7 @@ var caravan_threshold_multipliers: Dictionary = {}
 
 var bus: CharacterBody2D
 var cam: Camera2D
-var _agent: NavigationAgent2D
+
 var _path_world: PackedVector2Array = PackedVector2Array()
 var _is_paused: bool = false
 @onready var path_line: Line2D = get_node_or_null("PathLine")
@@ -41,21 +41,40 @@ var _game_over_ui: Control
 var map_manager: MapManager
 
 func _ready() -> void:
-	# Initialize MapLoader to load chunked map
-	var map_loader_script = load("res://scripts/MapLoader.gd")
-	if map_loader_script:
-		var map_loader = Node2D.new()
-		map_loader.set_script(map_loader_script)
-		map_loader.name = "MapLoader"
-		add_child(map_loader)
-		move_child(map_loader, 0) # Ensure map is behind everything
-		print("Overworld: MapLoader initialized.")
+	# Robustness: Reload defaults if Inspector overrides set them to null
+	if bus_scene == null:
+		bus_scene = load("uid://c14uenn8n47fb")
+	if camera_scene == null:
+		camera_scene = load("uid://ckanwjybdtmp4")
+	if caravan_scene == null:
+		caravan_scene = load("uid://bgbook0avqvjl")
 
-	await _await_nav_ready()
-	
-	# Find MapManager (Assumes user added it to scene or we instantiate it?)
-	# User instructions: "Create a Node2D in your main scene... named MapManager"
-	map_manager = get_node_or_null("MapManager") as MapManager
+	# Initialize MapLoader to load chunked map
+	# Initialize MapLoader to load chunked map
+	var map_loader = MapLoader.new()
+	if map_loader:
+		map_loader.name = "MapLoader"
+		
+		# Fix Scaling: Add MapLoader to the 6x Scaled "MapScenery" node if it exists
+		var map_scenery = get_node_or_null("MapScenery")
+		if map_scenery:
+			map_scenery.add_child(map_loader)
+		else:
+			add_child(map_loader)
+			
+		# Ensure map is behind everything (in its parent)
+		map_loader.get_parent().move_child(map_loader, 0)
+
+
+	# Cleanup Editor Map logic is now handled by the EditorMapLoader script itself.
+
+
+	# Find MapManager (Now potentially inside MapScenery)
+	map_manager = get_node_or_null("MapScenery/MapManager") as MapManager
+	if map_manager == null:
+		# Fallback checking root
+		map_manager = get_node_or_null("MapManager") as MapManager
+		
 	if map_manager == null:
 		push_warning("Overworld: MapManager node not found! Please create it.")
 
@@ -66,22 +85,48 @@ func _ready() -> void:
 		add_child(path_line)
 	path_line.visible = false
 
-	# Spawn Bus
-	bus = bus_scene.instantiate() as CharacterBody2D
-	add_child(bus)
-	_player_bus = bus as Bus
-
-	# Spawn position snapped to the navmesh (fallback to base if nav has no point)
-	var spawn_base: Vector2 = map_origin + bus_spawn_point
-	var snapped_pos: Vector2 = _snap_to_nav(spawn_base)
-	var final_position: Vector2 = (snapped_pos if snapped_pos != Vector2.ZERO else spawn_base)
-	bus.global_position = final_position
-
-	# Configure agent if present
-	_agent = bus.get_node_or_null("NavigationAgent2D") as NavigationAgent2D
-	if _agent != null:
-		_agent.navigation_layers = NAV_LAYERS
-		_agent.target_position = final_position
+	# 1. Check for Bus in scene (Editor-placed) accounting for user placing it in MapScenery
+	var existing_bus = get_node_or_null("Bus")
+	if not existing_bus:
+		existing_bus = get_node_or_null("MapScenery/Bus")
+	if not existing_bus:
+		# In case it's named Generic "CharacterBody2D" (common when dragging in)
+		existing_bus = get_node_or_null("MapScenery/CharacterBody2D")
+		
+	var final_position: Vector2
+	
+	if existing_bus:
+		bus = existing_bus as CharacterBody2D
+		_player_bus = bus as Bus
+		
+		# Fix Scaling: If user put Bus in MapScenery (6x), it will be huge.
+		# We must reparent it to Root (1x) while keeping its global position.
+		if bus.get_parent() != self:
+			bus.reparent(self, true) # true = keep_global_transform
+			
+		final_position = bus.global_position
+	else:
+		# 2. Fallback: Spawn Bus programmatically
+		bus = bus_scene.instantiate() as CharacterBody2D
+		
+		# If we spawn it, put it in MapScenery for correct scaling consistency? 
+		# No, existing code put it in Root. Let's keep Root for now unless we want to change that.
+		# Actually, user put theirs in MapScenery. Let's check MapScenery existence.
+		var map_scenery = get_node_or_null("MapScenery")
+		if map_scenery:
+			map_scenery.add_child(bus)
+		else:
+			add_child(bus)
+			
+		_player_bus = bus as Bus
+		
+		# Set position
+		final_position = map_origin + bus_spawn_point
+		bus.global_position = final_position
+	
+	# Dependency Injection: Give Bus the MapManager directly
+	if _player_bus != null:
+		_player_bus.map_manager = map_manager
 
 	# Connect bus signals
 	if _player_bus != null:
@@ -93,21 +138,24 @@ func _ready() -> void:
 	cam.set("bus", bus)
 	cam.set("map_origin", map_origin)
 	cam.set("map_size", map_size)
+	# Inject MapManager into Camera if it needs it (optional, but good practice)
+	# cam.set("map_manager", map_manager) 
+	cam.global_position = final_position
 	cam.global_position = final_position
 	add_child(cam)
 	cam.enabled = true
 
 	# Load default ItemDB if not set
 	if item_db == null:
-		item_db = load("res://data/Items/ItemsCatalog.tres")
+		item_db = load("uid://dpu7dor4326r3")
 
 	# Load default caravan types if not set
 	if caravan_types.is_empty():
 		caravan_types = [
-			load("res://data/Caravans/FoodTrader.tres"),
-			load("res://data/Caravans/MaterialTrader.tres"),
-			load("res://data/Caravans/LuxuryTrader.tres"),
-			load("res://data/Caravans/MedicalTrader.tres")
+			load("uid://d0kksk2xxwyvv"),
+			load("uid://bl0n1whf7nvp5"),
+			load("uid://cey8s0xhonm0l"),
+			load("uid://calnlbpqgqy7v")
 		]
 
 	# Connect to Timekeeper pause/resume signals
@@ -124,7 +172,7 @@ func _ready() -> void:
 	encounter_canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(encounter_canvas)
 
-	var encounter_ui_scene: PackedScene = preload("res://UI/EncounterUI.tscn")
+	var encounter_ui_scene: PackedScene = preload("uid://b8kj3x4n2qp5m")
 	_encounter_ui = encounter_ui_scene.instantiate() as Control
 	_encounter_ui.process_mode = Node.PROCESS_MODE_ALWAYS
 	encounter_canvas.add_child(_encounter_ui)
@@ -136,7 +184,7 @@ func _ready() -> void:
 	loot_canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(loot_canvas)
 
-	var loot_ui_scene: PackedScene = preload("res://UI/LootUI.tscn")
+	var loot_ui_scene: PackedScene = preload("uid://c2m7k9x3p5qn8")
 	_loot_ui = loot_ui_scene.instantiate() as Control
 	_loot_ui.process_mode = Node.PROCESS_MODE_ALWAYS
 	loot_canvas.add_child(_loot_ui)
@@ -147,7 +195,7 @@ func _ready() -> void:
 	game_over_canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(game_over_canvas)
 
-	var game_over_ui_scene: PackedScene = preload("res://UI/GameOverUI.tscn")
+	var game_over_ui_scene: PackedScene = preload("uid://d3k9m7x5p2qn4")
 	_game_over_ui = game_over_ui_scene.instantiate() as Control
 	_game_over_ui.process_mode = Node.PROCESS_MODE_ALWAYS
 	game_over_canvas.add_child(_game_over_ui)
@@ -182,10 +230,9 @@ func _process(delta: float) -> void:
 	if _player_bus != null and bus != null:
 		var chase_target: Node2D = _player_bus.get_chase_target()
 		if chase_target != null:
-			var start_on_nav: Vector2 = _snap_to_nav(bus.global_position)
-			var target_on_nav: Vector2 = _snap_to_nav(chase_target.global_position)
-			var world_path: PackedVector2Array = _compute_nav_path(start_on_nav, target_on_nav)
-			_set_path_line(world_path)
+			if map_manager != null:
+				var world_path: PackedVector2Array = map_manager.get_path_world(bus.global_position, chase_target.global_position)
+				_set_path_line(world_path)
 
 func _physics_process(_delta: float) -> void:
 	if bus == null or _path_world.size() == 0 or path_line == null:
@@ -208,37 +255,17 @@ func _unhandled_input(event: InputEvent) -> void:
 			if _player_bus != null and _player_bus.get_chase_target() != null:
 				_player_bus.chase_target(null)
 
-			# Snap both endpoints to the navmesh
-			var start_on_nav: Vector2 = _snap_to_nav(bus.global_position)
 			var click_pos: Vector2 = get_global_mouse_position()
-			var target_on_nav: Vector2 = _snap_to_nav(click_pos)
 
-			# Compute post-processed path so it matches what the agent will follow
-			var world_path: PackedVector2Array = _compute_nav_path(start_on_nav, target_on_nav)
+			# 1. Visualize Path
+			if map_manager != null:
+				var world_path: PackedVector2Array = map_manager.get_path_world(bus.global_position, click_pos)
+				_set_path_line(world_path)
 
-			# Draw and set agent target
-			_set_path_line(world_path)
-
-			if _agent != null:
-				_agent.navigation_layers = NAV_LAYERS
-				_agent.target_position = target_on_nav
-
-func _snap_to_nav(p: Vector2) -> Vector2:
-	var nav_map: RID = get_world_2d().navigation_map
-	return NavigationServer2D.map_get_closest_point(nav_map, p)
-
-func _compute_nav_path(start_on_nav: Vector2, target_on_nav: Vector2) -> PackedVector2Array:
-	var params: NavigationPathQueryParameters2D = NavigationPathQueryParameters2D.new()
-	params.map = get_world_2d().navigation_map
-	params.start_position = start_on_nav
-	params.target_position = target_on_nav
-	params.navigation_layers = NAV_LAYERS
-	params.path_postprocessing = NavigationPathQueryParameters2D.PATH_POSTPROCESSING_CORRIDORFUNNEL
-	params.simplify_path = true
-
-	var result: NavigationPathQueryResult2D = NavigationPathQueryResult2D.new()
-	NavigationServer2D.query_path(params, result)
-	return result.path
+			# 2. Move Bus
+			# The bus script handles the actual movement along the path
+			if _player_bus != null:
+				_player_bus.move_to(click_pos)
 
 func _set_path_line(points_world: PackedVector2Array) -> void:
 	# Store the world-space path; Line2D will be updated each physics tick
@@ -297,11 +324,8 @@ func _update_line2d_from_world_path() -> void:
 	path_line.visible = true
 
 func _await_nav_ready() -> void:
-	var nav_map: RID = get_world_2d().navigation_map
-	var guard: int = 0
-	while NavigationServer2D.map_get_iteration_id(nav_map) == 0 and guard < 60:
-		await get_tree().process_frame
-		guard += 1
+	# Deprecated with MapManager, but keeping empty to not break await calls if any remain
+	pass
 
 # ============================================================
 # Caravan Spawning System
@@ -419,7 +443,7 @@ func _spawn_caravan(home_hub: Hub, caravan_type: CaravanType, all_hubs: Array[Hu
 
 	# Add to scene FIRST, then setup (setup sets position)
 	add_child(caravan)
-	caravan.setup(home_hub, state, item_db, all_hubs)
+	caravan.setup(home_hub, state, item_db, all_hubs, map_manager)
 	active_caravans.append(caravan)
 
 	# Connect combat and cleanup signals
@@ -460,10 +484,9 @@ func _on_chase_started() -> void:
 func _on_chase_initiated(target_actor: Node2D) -> void:
 	if _player_bus != null and bus != null:
 		# Set up pathline to show route to target (caravan or beast den)
-		var start_on_nav: Vector2 = _snap_to_nav(bus.global_position)
-		var target_on_nav: Vector2 = _snap_to_nav(target_actor.global_position)
-		var world_path: PackedVector2Array = _compute_nav_path(start_on_nav, target_on_nav)
-		_set_path_line(world_path)
+		if map_manager != null:
+			var world_path: PackedVector2Array = map_manager.get_path_world(bus.global_position, target_actor.global_position)
+			_set_path_line(world_path)
 
 		# Start the chase
 		_player_bus.chase_target(target_actor)

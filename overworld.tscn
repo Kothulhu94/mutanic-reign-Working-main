@@ -1,6 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://bn7il32yep7nb"]
+[gd_scene load_steps=14 format=3 uid="uid://bn7il32yep7nb"]
 
 [ext_resource type="Script" uid="uid://c7s2t2bplv8mh" path="res://overworld.gd" id="1_overworld"]
+[ext_resource type="Script" uid="uid://buoe21ml6g3ng" path="res://scripts/MapManager.gd" id="2_mapmgr"]
+[ext_resource type="TileSet" uid="uid://dqkukvvklhbpj" path="res://resources/GridDataTileSet.tres" id="3_tileset"]
+[ext_resource type="Script" uid="uid://df3n8atmwuse5" path="res://scripts/EditorMapLoader.gd" id="4_editormap"]
+[ext_resource type="PackedScene" uid="uid://c14uenn8n47fb" path="res://Actors/Bus.tscn" id="5_4op41"]
 [ext_resource type="PackedScene" uid="uid://blipjagcsarec" path="res://Hub/Hub.tscn" id="258_7r4as"]
 [ext_resource type="Resource" uid="uid://boqebad2qbjwp" path="res://data/Hubs/Oakmill.tres" id="259_vu0qf"]
 [ext_resource type="Resource" uid="uid://cvxcsjomg6ips" path="res://data/Hubs/Stonegrove.tres" id="261_pyulv"]
@@ -11,9 +15,23 @@
 [ext_resource type="Resource" path="res://data/BeastDens/ScrapjackalDen.tres" id="266_ak540"]
 
 [node name="Overworld" type="Node2D"]
-scale = Vector2(6, 6)
 script = ExtResource("1_overworld")
-bus_spawn_point = Vector2(1000, 1805)
+
+[node name="MapScenery" type="Node2D" parent="."]
+scale = Vector2(6, 6)
+
+[node name="EditorMap" type="Node2D" parent="MapScenery"]
+script = ExtResource("4_editormap")
+metadata/_edit_lock_ = true
+
+[node name="MapManager" type="Node2D" parent="MapScenery"]
+script = ExtResource("2_mapmgr")
+
+[node name="GridData" type="TileMapLayer" parent="MapScenery/MapManager"]
+tile_set = ExtResource("3_tileset")
+
+[node name="CharacterBody2D" parent="MapScenery" instance=ExtResource("5_4op41")]
+position = Vector2(5677.167, 5440)
 
 [node name="PathLine" type="Line2D" parent="."]
 z_index = 100
@@ -21,14 +39,14 @@ width = 5.0
 default_color = Color(0.8784314, 0.011764706, 0, 1)
 
 [node name="Oakmill" parent="." node_paths=PackedStringArray("hub_menu_ui", "market_ui", "recruitment_ui") instance=ExtResource("258_7r4as")]
-position = Vector2(562.6665, 1986.6665)
+position = Vector2(34348, 41813)
 state = ExtResource("259_vu0qf")
 hub_menu_ui = NodePath("../UILayer/HubMenuUI")
 market_ui = NodePath("../UILayer/MarketUI")
 recruitment_ui = NodePath("../UILayer/RecruitmentUI")
 
 [node name="Stonegrove" parent="." node_paths=PackedStringArray("hub_menu_ui", "market_ui", "recruitment_ui") instance=ExtResource("258_7r4as")]
-position = Vector2(6032, 4308.8335)
+position = Vector2(33531, 31166)
 state = ExtResource("261_pyulv")
 hub_menu_ui = NodePath("../UILayer/HubMenuUI")
 market_ui = NodePath("../UILayer/MarketUI")
@@ -43,5 +61,5 @@ recruitment_ui = NodePath("../UILayer/RecruitmentUI")
 [node name="RecruitmentUI" parent="UILayer" instance=ExtResource("264_recruitmentui")]
 
 [node name="BeastDen" parent="." instance=ExtResource("265_45p7e")]
-position = Vector2(701.1666, 1288.6666)
+position = Vector2(29713, 34518)
 den_type = ExtResource("266_ak540")

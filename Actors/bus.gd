@@ -116,14 +116,8 @@ func _ready() -> void:
 		if timekeeper.has_signal("resumed"):
 			timekeeper.resumed.connect(_on_timekeeper_resumed)
 			
-	# Attempt to find MapManager if not assigned
 	if map_manager == null:
-		map_manager = get_node_or_null("/root/Overworld/MapManager")
-		if map_manager == null:
-			# Try to find it in the parent (Overworld)
-			var p = get_parent()
-			if p and p.has_node("MapManager"):
-				map_manager = p.get_node("MapManager")
+		push_warning("Bus: MapManager not assigned on startup. Waiting for injection...")
 
 func move_to(target_pos: Vector2):
 	if map_manager == null:
@@ -202,29 +196,15 @@ func award_skill_xp(skill_id: StringName, value: float) -> void:
 	if charactersheet == null:
 		return
 
-	var skill_spec: SkillSpec = charactersheet.get_skill_spec(skill_id)
-	if skill_spec == null:
-		return
-
-	# Load the skill definition
-	var skill_def: Skill = Skills.get_skill(skill_id)
-	if skill_def == null:
+	# Load the active skill from the sheet
+	var skill: Skill = charactersheet.get_skill(skill_id)
+	if skill == null:
 		return
 
 	# Calculate XP: 1 XP per 100 PACs
 	var xp_amount: float = value / 100.0
 	if xp_amount > 0.0:
-		# Update the SkillSpec's runtime values
-		skill_spec.current_xp += xp_amount
-
-		# Check for rank-up
-		while skill_spec.current_rank < skill_def.max_rank:
-			var xp_needed: int = skill_def.get_xp_for_rank(skill_spec.current_rank + 1)
-			if xp_needed <= 0 or skill_spec.current_xp < float(xp_needed):
-				break
-			# Rank up
-			skill_spec.current_xp -= float(xp_needed)
-			skill_spec.current_rank += 1
+		skill.add_xp(xp_amount)
 
 ## Track a trade transaction for session-based XP awards
 func track_trade_transaction(hub_name: String, transaction_value: float) -> void:
@@ -278,4 +258,8 @@ func _initialize_trading_skills() -> void:
 	]
 
 	for skill_id: StringName in trading_skills:
-		charactersheet.add_skill(skill_id, Skills.database)
+		var skill_res = Skills.get_skill(skill_id)
+		if skill_res:
+			charactersheet.add_skill(skill_res)
+		else:
+			push_warning("Bus: Could not find skill resource for '%s'" % skill_id)

@@ -1,19 +1,10 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://cpx8n5kq7wmjt"]
+[gd_resource type="Resource" script_class="Perk" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://bcwtul4idcrmu" path="uid://bcwtul4idcrmu" id="1"]
+[ext_resource type="Script" path="res://Characters/Perk.gd" id="1_kbjy6"]
 
 [resource]
-script = ExtResource("1")
-skill_id = &"economic_dominance"
+script = ExtResource("1_kbjy6")
+id = &"economic_dominance"
 display_name = "Economic Dominance"
-description = "Increase all income by +50%. NPC caravans with this skill gain superior speed, inventory capacity, and trade rates."
-domain_id = &"Trading"
-tier = 3
-primary_attribute = &"Guile"
-secondary_attribute = &"Willpower"
-effect_type = &"total_income_bonus"
-base_effect_per_rank = Array[float]([0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 1.0])
-xp_trigger = &"economic_mastery"
-xp_trigger_description = "Gain XP through sustained economic dominance"
-prerequisite_skill_ids = Array[StringName]([&"market_monopoly", &"established_routes"])
-unlocks_system = "market_monopoly"
+description = "Buy out competitive businesses in hubs."
+required_skill_level = 25

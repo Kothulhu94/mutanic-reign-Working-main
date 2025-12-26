@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Characters/Perk.gd" id="1_d32dn"]
+[ext_resource type="Script" path="res://Characters/Skill.gd" id="2_oyf0o"]
+
+[resource]
+script = ExtResource("2_oyf0o")
+id = &"ranged"
+display_name = "Ranged"
+description = "Mastery of Ranged."
+primary_attribute = &"Might"
+secondary_attribute = &"Guile"

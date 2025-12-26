@@ -69,6 +69,15 @@ func move_to(target_pos: Vector2) -> void:
 	_current_path = map_manager.get_path_world(global_position, target_pos)
 	_path_index = 0
 
+	# OPTIMIZATION: path smoothing
+	# If the first point in the path is the cell we are currently in, skip it 
+	# to avoid backtracking to the exact center of the current cell.
+	if _current_path.size() > 1:
+		var current_cell = map_manager.local_to_map(global_position)
+		var start_path_cell = map_manager.local_to_map(_current_path[0])
+		if current_cell == start_path_cell:
+			_path_index = 1
+
 func update_movement(delta: float) -> void:
 	if _current_path.is_empty():
 		return

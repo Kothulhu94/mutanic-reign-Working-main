@@ -25,26 +25,23 @@ var rations: float:
 		rations_changed.emit(_rations)
 
 func _ready() -> void:
-	print("GameState ready")
-	Timekeeper.tick.connect(_on_tick)  # hook Timekeeper's signal to our handler
+	Timekeeper.tick.connect(_on_tick) # hook Timekeeper's signal to our handler
 
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("quick_save"):
-		if quick_save():
-			print("[GameState] Quick save successful (F5)")
+		quick_save()
 		get_viewport().set_input_as_handled()
 
 	elif event.is_action_pressed("quick_load"):
-		if quick_load():
-			print("[GameState] Quick load successful (F9)")
+		quick_load()
 		get_viewport().set_input_as_handled()
 
 
 func _on_tick(step: float) -> void:
 	if !is_time_running: return
 	# ~0.2 fuel/sec and ~0.1 rations/sec (tweak later)
-	fuel    -= 0.2 * step * 10.0
+	fuel -= 0.2 * step * 10.0
 	rations -= 0.1 * step * 10.0
 
 
@@ -68,7 +65,7 @@ func save_game(save_path: String = "user://savegame.json") -> bool:
 	# Integrate ProgressionManager data
 	if ProgressionManager != null:
 		save_data["progression"] = ProgressionManager.save_all_to_dict()
-		print("[GameState] Saved %d characters to progression data" % save_data["progression"].size())
+
 	else:
 		push_warning("GameState.save_game: ProgressionManager not available")
 
@@ -84,7 +81,7 @@ func save_game(save_path: String = "user://savegame.json") -> bool:
 	file.store_string(json_string)
 	file.close()
 
-	print("[GameState] Game saved to '%s'" % save_path)
+
 	return true
 
 
@@ -133,7 +130,7 @@ func load_game(save_path: String = "user://savegame.json") -> bool:
 	elif ProgressionManager == null:
 		push_warning("GameState.load_game: ProgressionManager not available, skipping progression data")
 
-	print("[GameState] Game loaded from '%s' (version: %s)" % [save_path, save_data.get("version", "unknown")])
+
 	return true
 
 

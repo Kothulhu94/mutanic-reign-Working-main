@@ -9,6 +9,17 @@
     - "godot_version_enforced": "4.5.stable"
     - "resource_refining_active": "Ignore 3D and Audio documentation (Node3D, AudioStreamPlayer, etc.) unless specifically requested."
     - "path_standards": "All workspace paths must remain absolute relative to the drive root (d:\GodoTDev\)."
+    - "asset_fallback_protocol": "If a specific sprite is missing, instantiate a ColorRect or Polygon2D with the approximate hitbox dimensions. Do not request external assets."
+
+@testing
+  @verification_method "HTML5_Export_Localhost"
+  @export_path "http://localhost:8060/index.html"
+  @browser_agent_instruction "Verification Workflow:
+    1. EXPORT: Run 'godot --headless --export-release Web d:\GodoTDev\builds\web\index.html'.
+    2. SERVE: Run 'python d:\GodoTDev\serve_game.py d:\GodoTDev\builds\web' (Required for COOP/COEP headers).
+    3. LAUNCH: Open 'http://localhost:8060/index.html' in browser tool.
+    4. VERIFY: Wait for load, check for 'MapLoader: Finished' logs, and verify mechanic (e.g. green debug lines).
+    5. REPORT: Capture screenshot on success/failure."
 
 @paths
   @workspace_root "d:\GodoTDev\mutanic-reign-Working-main\mutanic-reign-Working-main"
@@ -18,9 +29,29 @@
 
 @rag_resources
   @global_rules "d:\GodoTDev\Godot2DRefined\AgentRules.toon"
+  @project_config "d:\GodoTDev\mutanic-reign-Working-main\mutanic-reign-Working-main\project.godot"
   @libraries
     - "d:\GodoTDev\Godot2DRefined\Reference\2DClasses.toon"
     - "d:\GodoTDev\Godot2DRefined\Reference\CoreClasses.toon"
     - "d:\GodoTDev\Godot2DRefined\Reference\UIClasses.toon"
     - "d:\GodoTDev\Godot2DRefined\Reference\MathAndUtility.toon"
+
+@mcp_servers
+  @server "godot_mcp"
+    @command "d:\GodoTDev\Node\node.exe"
+    @args "d:\GodoTDev\godot-mcp\build\index.js"
+    @env
+      - "GODOT_PATH": "d:\GodoTDev\Godot_v4.5.1-stable_win64.exe"
+
+  @server "godot_linter"
+    @command "d:\GodoTDev\Python\python.exe"
+    @args "-m" "gdtoolkit.linter"
+    @env
+      - "GDLINT_RC": "d:\GodoTDev\.gdlintrc"
+
+  @server "web_test_server"
+    @command "d:\GodoTDev\Python\python.exe"
+    @args "d:\GodoTDev\serve_game.py" "d:\GodoTDev\builds\web"
+    @env
+      - "PYTHONUNBUFFERED": "1"
 

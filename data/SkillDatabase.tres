@@ -1,30 +1,20 @@
-[gd_resource type="Resource" script_class="SkillDatabase" load_steps=14 format=3 uid="uid://skill_database_root"]
+[gd_resource type="Resource" script_class="SkillDatabase" load_steps=15 format=3]
 
-[ext_resource type="Script" path="uid://cg7v4inyg6hlh" id="1"]
-[ext_resource type="Resource" path="res://data/Domains/MeleeDomain.tres" id="2"]
-[ext_resource type="Resource" path="res://data/Domains/RangedDomain.tres" id="3"]
-[ext_resource type="Resource" path="res://data/Domains/ArtifactWeaponsDomain.tres" id="4"]
-[ext_resource type="Resource" path="res://data/Domains/ExplorationDomain.tres" id="5"]
-[ext_resource type="Resource" path="res://data/Domains/CraftsmanshipDomain.tres" id="6"]
-[ext_resource type="Resource" path="res://data/Domains/TradingDomain.tres" id="7"]
-[ext_resource type="Resource" path="res://data/Domains/GovernanceDomain.tres" id="8"]
-[ext_resource type="Resource" path="res://data/Domains/LeadershipDomain.tres" id="9"]
-[ext_resource type="Resource" path="res://data/Domains/DiplomacyDomain.tres" id="10"]
-[ext_resource type="Resource" path="res://data/Domains/CriminalityDomain.tres" id="11"]
-[ext_resource type="Resource" path="res://data/Domains/EspionageDomain.tres" id="12"]
-[ext_resource type="Resource" path="res://data/Domains/ReligionDomain.tres" id="13"]
+[ext_resource type="Script" path="res://Characters/SkillDatabase.gd" id="1_mf21k"]
+[ext_resource type="Script" path="res://Characters/Skill.gd" id="2_3tj6r"]
+[ext_resource type="Resource" path="res://data/Skills/Trading.tres" id="3_trw5b"]
+[ext_resource type="Resource" path="res://data/Skills/Melee/Melee.tres" id="4_vkp3x"]
+[ext_resource type="Resource" path="res://data/Skills/Ranged/Ranged.tres" id="5_6f8gw"]
+[ext_resource type="Resource" path="res://data/Skills/ArtifactWeapons/ArtifactWeapons.tres" id="6_mia1v"]
+[ext_resource type="Resource" path="res://data/Skills/Exploration/Exploration.tres" id="7_ek64k"]
+[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/Craftsmanship.tres" id="8_qit2n"]
+[ext_resource type="Resource" path="res://data/Skills/Governance/Governance.tres" id="9_acs6d"]
+[ext_resource type="Resource" path="res://data/Skills/Leadership/Leadership.tres" id="10_igdpp"]
+[ext_resource type="Resource" path="res://data/Skills/Diplomacy/Diplomacy.tres" id="11_5qiyg"]
+[ext_resource type="Resource" path="res://data/Skills/Criminality/Criminality.tres" id="12_qxdr8"]
+[ext_resource type="Resource" path="res://data/Skills/Espionage/Espionage.tres" id="13_l320w"]
+[ext_resource type="Resource" path="res://data/Skills/Religion/Religion.tres" id="14_gxfr0"]
 
 [resource]
-script = ExtResource("1")
-melee_domain = ExtResource("2")
-ranged_domain = ExtResource("3")
-artifact_domain = ExtResource("4")
-exploration_domain = ExtResource("5")
-craftsmanship_domain = ExtResource("6")
-trading_domain = ExtResource("7")
-governance_domain = ExtResource("8")
-leadership_domain = ExtResource("9")
-diplomacy_domain = ExtResource("10")
-criminality_domain = ExtResource("11")
-espionage_domain = ExtResource("12")
-religion_domain = ExtResource("13")
+script = ExtResource("1_mf21k")
+skills = Array[ExtResource("2_3tj6r")]([ExtResource("3_trw5b"), ExtResource("4_vkp3x"), ExtResource("5_6f8gw"), ExtResource("6_mia1v"), ExtResource("7_ek64k"), ExtResource("8_qit2n"), ExtResource("9_acs6d"), ExtResource("10_igdpp"), ExtResource("11_5qiyg"), ExtResource("12_qxdr8"), ExtResource("13_l320w"), ExtResource("14_gxfr0")])

@@ -1,30 +1,11 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3 uid="uid://c8vw5kn7qxpm2"]
+[gd_resource type="Resource" script_class="Perk" load_steps=2 format=3]
 
-[ext_resource type="Script" path="uid://bcwtul4idcrmu" id="1"]
+[ext_resource type="Script" path="res://Characters/Perk.gd" id="1_rds28"]
 
 [resource]
-script = ExtResource("1")
-skill_id = &"market_analysis"
+script = ExtResource("1_rds28")
+id = &"market_analysis"
 display_name = "Market Analysis"
-description = "Increase buy/sell price spread by +20%, earning more profit per trade."
-domain_id = &"Trading"
-tier = 1
-max_rank = 10
-primary_attribute = &"Guile"
-secondary_attribute = &"Willpower"
-primary_attr_scale = 0.75
-secondary_attr_scale = 0.25
-base_effect_per_rank = [0.20, 0.22, 0.24, 0.26, 0.28, 0.30, 0.32, 0.34, 0.36, 0.40]
-xp_per_rank = [0, 100, 100, 100, 500, 500, 500, 1000, 1000, 2000]
-effect_type = &"trade_profit_margin"
-is_multiplicative = true
-is_passive = true
-effect_cap_per_rank = []
-cooldown_cycles_per_rank = []
-resource_cost_per_rank = []
-effect_multiplier_per_rank = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-xp_trigger = &"trading_goods"
-xp_trigger_description = "Gain XP when buying and selling goods at markets"
-uses_difficulty_multiplier = true
-prerequisite_skill_ids = []
-unlocks_system = ""
+description = "Increase buy/sell price spread by +20%."
+required_skill_level = 1
+effect_id = &"trade_profit_margin"
