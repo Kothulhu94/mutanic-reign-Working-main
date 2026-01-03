@@ -9,14 +9,20 @@ signal chase_started()
 @export var move_speed := 200.0
 var charactersheet: CharacterSheet
 var _is_paused: bool = false
-var inventory: Dictionary = {}
-var money: int = 1000
-@export var max_unique_stacks: int = 16
-@export var max_stack_size: int = 100
+# inventory is now managed by charactersheet
+var inventory: Dictionary:
+	get:
+		if charactersheet:
+			return charactersheet.inventory
+		return {}
+
+var pacs: int = 1000
 var _health_visual: Control
 var _chase_target: Node2D = null
 const ENCOUNTER_DISTANCE: float = 60.0
 var _safe_velocity: Vector2 = Vector2.ZERO
+var _repath_timer: float = 0.0
+const REPATH_INTERVAL: float = 0.2
 
 # Trading skill tracking
 var _trade_session_value: float = 0.0 # Total PACs traded in current session
@@ -25,65 +31,31 @@ var _last_wealth_check: int = 0 # For EconomicDominance tracking
 
 ## Checks if a specific amount of an item can be added without exceeding limits.
 func can_add_item(item_id: StringName, amount: int) -> bool:
-	if amount <= 0:
-		return true # Adding zero or negative is always "possible" logically
-
-	var current_amount: int = inventory.get(item_id, 0)
-	var is_new_stack: bool = not inventory.has(item_id) or current_amount == 0
-
-	# Check 1: Max stack size for this specific item
-	if current_amount + amount > max_stack_size:
-		print("Cannot add %d %s: Exceeds max stack size (%d)." % [amount, item_id, max_stack_size])
-		return false
-
-	# Check 2: Max unique stacks if this is a new item type
-	if is_new_stack and inventory.size() >= max_unique_stacks:
-		print("Cannot add %s: Exceeds max unique stacks (%d)." % [item_id, max_unique_stacks])
-		return false
-
-	# If checks pass, it's possible to add
-	return true
+	if charactersheet:
+		return charactersheet.can_add_item(item_id, amount)
+	return false
 
 
 ## Adds a specified amount of an item to the inventory, respecting limits.
 ## Returns true if successful, false otherwise.
 func add_item(item_id: StringName, amount: int) -> bool:
-	if amount <= 0:
-		push_warning("add_item: Cannot add zero or negative amount.")
-		return false # Or true? Depends on desired behavior for zero/negative.
-
-	if can_add_item(item_id, amount):
-		inventory[item_id] = inventory.get(item_id, 0) + amount
-		print("Added %d %s. New total: %d" % [amount, item_id, inventory[item_id]])
-		# TODO: Emit a signal if UI needs to update inventory display
-		# inventory_changed.emit()
-		return true
-	else:
-		# can_add_item already printed the reason
-		return false
+	if charactersheet:
+		var result = charactersheet.add_item(item_id, amount)
+		if result:
+			print("Added %d %s. New total: %d" % [amount, item_id, charactersheet.inventory.get(item_id, 0)])
+		return result
+	return false
 
 
 ## Removes a specified amount of an item from the inventory.
 ## Returns true if successful, false otherwise (e.g., not enough items).
 func remove_item(item_id: StringName, amount: int) -> bool:
-	if amount <= 0:
-		push_warning("remove_item: Cannot remove zero or negative amount.")
-		return false
-
-	var current_amount: int = inventory.get(item_id, 0)
-
-	if current_amount < amount:
-		print("Cannot remove %d %s: Only have %d." % [amount, item_id, current_amount])
-		return false
-	else:
-		inventory[item_id] = current_amount - amount
-		print("Removed %d %s. Remaining: %d" % [amount, item_id, inventory[item_id]])
-		# Remove the key if the amount becomes zero (optional, keeps inventory clean)
-		if inventory[item_id] == 0:
-			inventory.erase(item_id)
-		# TODO: Emit a signal if UI needs to update inventory display
-		# inventory_changed.emit()
-		return true
+	if charactersheet:
+		var result = charactersheet.remove_item(item_id, amount)
+		if result:
+			print("Removed %d %s. Remaining: %d" % [amount, item_id, charactersheet.inventory.get(item_id, 0)])
+		return result
+	return false
 
 ###########################################################
 # Pathfinding Migration
@@ -125,8 +97,24 @@ func move_to(target_pos: Vector2):
 		return
 		
 	# Ask the MapManager for a path
-	_current_path = map_manager.get_path_world(global_position, target_pos)
+	var new_path = map_manager.get_path_world(global_position, target_pos)
+	if new_path.is_empty():
+		_current_path = []
+		return
+
+	_current_path = new_path
 	_path_index = 0
+	
+	# Smooth repathing: Skip the first point if we are already ahead of it
+	if _current_path.size() > 1:
+		var p0 = _current_path[0]
+		var p1 = _current_path[1]
+		var vec_path = p1 - p0
+		var vec_me = global_position - p0
+		
+		# If we are effectively "past" p0 in the direction of travel, skip it
+		if vec_me.dot(vec_path) > 0:
+			_path_index = 1
 
 func _physics_process(_delta: float) -> void:
 	# Don't move if paused
@@ -145,9 +133,10 @@ func _physics_process(_delta: float) -> void:
 			return
 
 		# Update navigation target if chasing
-		# For grid movement, we might want to repath occasionally, but for now let's just 
-		# periodically call move_to(_chase_target.global_position) or similar logic if needed.
-		pass
+		_repath_timer -= _delta
+		if _repath_timer <= 0.0:
+			_repath_timer = REPATH_INTERVAL
+			move_to(_chase_target.global_position)
 
 	# Movement Logic
 	if _current_path.is_empty():
@@ -227,7 +216,7 @@ func finalize_trade_session(hub_name: String) -> void:
 		award_skill_xp(&"established_routes", _trade_session_value * 0.5)
 
 	# Award EconomicDominance XP when wealth increases significantly
-	var current_wealth: int = money
+	var current_wealth: int = pacs
 	if current_wealth > _last_wealth_check + 1000:
 		var wealth_gain: float = float(current_wealth - _last_wealth_check)
 		award_skill_xp(&"economic_dominance", wealth_gain)

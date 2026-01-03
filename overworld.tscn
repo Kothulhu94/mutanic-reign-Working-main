@@ -46,7 +46,7 @@ market_ui = NodePath("../UILayer/MarketUI")
 recruitment_ui = NodePath("../UILayer/RecruitmentUI")
 
 [node name="Stonegrove" parent="." node_paths=PackedStringArray("hub_menu_ui", "market_ui", "recruitment_ui") instance=ExtResource("258_7r4as")]
-position = Vector2(33531, 31166)
+position = Vector2(33516, 31817)
 state = ExtResource("261_pyulv")
 hub_menu_ui = NodePath("../UILayer/HubMenuUI")
 market_ui = NodePath("../UILayer/MarketUI")

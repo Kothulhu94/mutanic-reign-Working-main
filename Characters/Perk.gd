@@ -11,6 +11,9 @@ class_name Perk
 @export var icon: Texture2D
 
 @export_group("Requirements")
+## The tier of this perk (1, 2, or 3).
+## Higher tiers require a certain number of perks to be unlocked in this skill tree.
+@export var tier: int = 1
 ## The level of the parent Skill required to purchase this perk.
 @export var required_skill_level: int = 0
 ## Cost in Perk Points (default 1).

@@ -100,7 +100,7 @@ func _on_transaction_confirmed(cart: Array[Dictionary]) -> void:
 		if buy_qty > 0:
 			var cost: int = int(ceil(float(buy_qty) * unit_price))
 			
-			if bus_ref.money < cost:
+			if bus_ref.pacs < cost:
 				push_warning("Hub %s: Player cannot afford to buy %d %s" % [hub_node.name, buy_qty, item_id])
 				continue
 			
@@ -117,8 +117,8 @@ func _on_transaction_confirmed(cart: Array[Dictionary]) -> void:
 				push_warning("Hub %s: Failed to add %d %s to player inventory" % [hub_node.name, buy_qty, item_id])
 				continue
 			
-			bus_ref.money -= cost
-			state.money += cost
+			bus_ref.pacs -= cost
+			state.pacs += cost
 			
 			# Award XP for market_analysis (trading_goods)
 			if bus_ref.has_method("award_skill_xp"):
@@ -142,8 +142,8 @@ func _on_transaction_confirmed(cart: Array[Dictionary]) -> void:
 			# Use trading system to handle inventory
 			trading_system.sell_to_hub(item_id, sell_qty, null)
 			
-			bus_ref.money += revenue
-			state.money -= revenue
+			bus_ref.pacs += revenue
+			state.pacs -= revenue
 			
 			# Award XP for market_analysis (trading_goods)
 			if bus_ref.has_method("award_skill_xp"):

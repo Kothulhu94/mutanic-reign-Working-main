@@ -5,9 +5,12 @@ class_name EncounterUI
 signal combat_ended(attacker: Node2D, defender: Node2D, winner: Node2D)
 ## Emitted when exit button is pressed
 signal exit_pressed()
+## Emitted when trade button is pressed
+signal trade_requested(attacker: Node2D, defender: Node2D)
 
 @onready var combat_label: Label = $Panel/VBoxContainer/CombatLabel
 @onready var attack_button: Button = $Panel/VBoxContainer/AttackButton
+@onready var trade_button: Button = $Panel/VBoxContainer/TradeButton
 @onready var exit_button: Button = $Panel/VBoxContainer/ExitButton
 
 var _attacker: Node2D = null
@@ -22,6 +25,8 @@ func _ready() -> void:
 		attack_button.pressed.connect(_on_attack_pressed)
 	if exit_button != null:
 		exit_button.pressed.connect(_on_exit_pressed)
+	if trade_button != null:
+		trade_button.pressed.connect(_on_trade_pressed)
 
 ## Opens the encounter UI for manual combat
 func open_encounter(attacker: Node2D, defender: Node2D) -> void:
@@ -41,6 +46,14 @@ func open_encounter(attacker: Node2D, defender: Node2D) -> void:
 			attack_button.pressed.disconnect(_on_retreat_pressed)
 		if not attack_button.pressed.is_connected(_on_attack_pressed):
 			attack_button.pressed.connect(_on_attack_pressed)
+	
+	if trade_button != null:
+		var can_trade: bool = true
+		if _defender.is_in_group("beasts") or _defender.is_in_group("beast_den"):
+			can_trade = false
+		
+		trade_button.visible = can_trade
+		trade_button.disabled = not can_trade
 	if combat_label != null:
 		combat_label.text = "Encounter!"
 
@@ -71,6 +84,10 @@ func _on_attack_pressed() -> void:
 		attack_button.text = "Retreat"
 		attack_button.pressed.disconnect(_on_attack_pressed)
 		attack_button.pressed.connect(_on_retreat_pressed)
+		
+	# Hide trade button during combat
+	if trade_button != null:
+		trade_button.visible = false
 
 func _execute_combat_round() -> void:
 	if _attacker == null or _defender == null:
@@ -138,3 +155,13 @@ func _on_retreat_pressed() -> void:
 func _on_exit_pressed() -> void:
 	exit_pressed.emit()
 	close_ui()
+
+func _on_trade_pressed() -> void:
+	if _attacker == null or _defender == null:
+		return
+	trade_requested.emit(_attacker, _defender)
+	# Logic fix: Must call close_ui() to unpause the defender (Caravan)
+	close_ui()
+	# Encounter UI stays open? Or hides?
+	# Typically hides to show market.
+	hide()

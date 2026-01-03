@@ -1,0 +1,43 @@
+@format "TOON 1.4"
+@context "RPG Character System Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Characters"
+
+@core_components
+  @attributes "CharacterAttributes"
+    - "Stats": Might, Guile, Intellect, Willpower.
+    - "XP Math": `XPCalculator.gd` handles splitting XP (Primary/Secondary) and difficulty modifiers.
+    - "Cap Logic": Soft caps at Level 5/10 with strong decay after 11.
+
+  @progression "CharacterProgression"
+    - "Role": Orchestrator. Owns `CharacterAttributes` and `skills` dictionary.
+    - "Serialization": `to_dict`/`from_dict` handling save/load.
+    - "Event": `grant_skill_xp` distributes XP to Skills -> Attributes via `XPCalculator`.
+
+  @sheet "CharacterSheet"
+    - "Role": The "Data Object" used by Entities (Players, Enemies, Caravans).
+    - "Contents":
+      - `base_stats` (Health, Damage, Defense).
+      - `inventory` + `troop_inventory` (Recruited Units).
+      - `equipment` (Slots: Head, Body, Weapons).
+      - `attributes` + `skills`.
+    - "Combat Integration": Methods like `get_effective_health()` calculate totals from Base + Attributes + Troops + Perks.
+
+@skill_system
+  @resource "Skill"
+    - "Definition": Contains metadata (ID, Icon) and `available_perks`.
+    - "Runtime": Tracks `current_xp`, `current_level`, `perk_points`, `unlocked_perk_ids`.
+    - "Curve": Custom trading curve (even/odd leveling) or geometric default.
+  
+  @resource "Perk"
+    - "Structure": Tiered nodes (1-3) with costs and prerequisites.
+  
+  @database "SkillDatabase"
+    - "Global": Caches all Skills/Perks for quick ID lookup.
+
+@math "XPCalculator"
+  - "Static Utility": Pure functions for XP curves.
+  - "Challenge Tuning": "Sweet Spot" mechanic where tasks matching character level give bonus XP; too easy/hard gives penalty.
+
+@notes
+  - "Instancing": `CharacterSheet` creates UNIQUE copies of `Skill` resources to track individual progress from the static Database.
+  - "Troops": `troop_inventory` directly buffs stats (`get_total_troop_bonuses`), acting like 'equipment' in the math.

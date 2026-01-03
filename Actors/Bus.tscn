@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://b5aq34n3fo0al" path="res://icon.svg" id="2_tqmkd"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_f7bok"]
-size = Vector2(8, 2)
+size = Vector2(10, 4)
 
 [node name="CharacterBody2D" type="CharacterBody2D" groups=["player"]]
 script = ExtResource("1_us70j")
@@ -13,5 +13,5 @@ script = ExtResource("1_us70j")
 shape = SubResource("RectangleShape2D_f7bok")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.0625, 0.015625)
+scale = Vector2(0.078125, 0.03125)
 texture = ExtResource("2_tqmkd")

@@ -231,7 +231,7 @@ func _state_returning_home(delta: float) -> void:
 func _arrive_at_home() -> void:
 	# Awards and tax
 	var trip_profit: int = caravan_state.profit_this_trip
-	var route_value: float = float(caravan_state.money + trip_profit)
+	var route_value: float = float(caravan_state.pacs + trip_profit)
 	
 	skill_system.award_xp(&"established_routes", route_value)
 	skill_system.award_xp(&"caravan_logistics", route_value)
@@ -239,10 +239,10 @@ func _arrive_at_home() -> void:
 	if trip_profit > 1000:
 		skill_system.award_xp(&"economic_dominance", float(trip_profit))
 		
-	if caravan_state.money > 0:
-		var tax: int = int(ceil(float(caravan_state.money) * home_tax_rate))
-		caravan_state.money -= tax
-		home_hub.state.money += tax
+	if caravan_state.pacs > 0:
+		var tax: int = int(ceil(float(caravan_state.pacs) * home_tax_rate))
+		caravan_state.pacs -= tax
+		home_hub.state.pacs += tax
 		
 	trading_system.reset_trip()
 	_transition_to(State.IDLE)
@@ -260,7 +260,15 @@ func get_state_name() -> String:
 		State.WAITING_TO_SELL: return "Waiting"
 		State.SEEKING_NEXT_HUB: return "Seeking"
 		State.RETURNING_HOME: return "Returning"
-		_: return "Unknown"
+	return "Unknown"
+
+func get_item_price(item_id: StringName) -> float:
+	if item_db == null:
+		return 1.0
+	# Use standard item DB price
+	if item_db.has_method("price_of"):
+		return item_db.price_of(item_id)
+	return 1.0
 
 # ============================================================
 # Input & Health Handlers
@@ -282,3 +290,6 @@ func _on_timekeeper_paused() -> void:
 
 func _on_timekeeper_resumed() -> void:
 	_is_paused = false
+	# Restart navigation if we were moving
+	if current_state == State.TRAVELING or current_state == State.RETURNING_HOME:
+		_transition_to(current_state)

@@ -102,6 +102,15 @@ func buy_perk(perk_id: StringName) -> bool:
 		
 	if current_level < perk.required_skill_level:
 		return false
+	
+	# Tier Gating Logic
+	var owned_count = unlocked_perk_ids.size()
+	if perk.tier == 2:
+		if owned_count < 5:
+			return false
+	elif perk.tier == 3:
+		if owned_count < 10:
+			return false
 		
 	for req_id in perk.prerequisite_perks:
 		if not has_perk(req_id):
@@ -117,8 +126,23 @@ func buy_perk(perk_id: StringName) -> bool:
 func get_xp_for_next_level() -> float:
 	if current_level >= max_level:
 		return 999999.0
+	
+	# Custom Curve for Trading
+	if id == &"Trading":
+		# Level 0 -> 1: 500 XP (Start)
+		if current_level == 0:
+			return 500.0
+		# Level 1 -> 2 (Even target): 1000 XP
+		# Level 2 -> 3 (Odd target): 500 XP
+		# Pattern: Even Levels (0, 2, 4...) need 500 to reach Odd.
+		# Odd Levels (1, 3, 5...) need 1000 to reach Even.
+		if current_level % 2 == 0:
+			return 500.0
+		else:
+			return 1000.0
+			
 	# Simple geometric curve: Base * (Mult ^ (Level-1))
-	return float(xp_curve_base) * pow(xp_curve_multiplier, float(current_level - 1))
+	return float(xp_curve_base) * pow(xp_curve_multiplier, float(max(0, current_level - 1)))
 
 ## Returns percent progress to next level (0.0 to 1.0)
 func get_progress_percent() -> float:
@@ -133,11 +157,9 @@ func get_progress_percent() -> float:
 func _level_up() -> void:
 	current_level += 1
 	
-	# Award 1 Perk Point every 25 levels
-	# (25, 50, 75, 100...)
-	if current_level % 25 == 0:
-		perk_points += 1
-		perk_point_gained.emit(perk_points)
+	# Award 1 Perk Point every level
+	perk_points += 1
+	perk_point_gained.emit(perk_points)
 
 func _get_perk_resource(perk_id: StringName) -> Perk:
 	if _perk_map.is_empty() and not available_perks.is_empty():

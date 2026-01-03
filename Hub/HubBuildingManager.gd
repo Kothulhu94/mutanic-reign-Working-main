@@ -42,6 +42,12 @@ func get_population_cap() -> int:
 		for n: Node in slots.iter_buildings():
 			if n.has_method("get_population_cap_bonus"):
 				cap += int(n.call("get_population_cap_bonus"))
+	
+	# Apply Starvation Penalty
+	# Reduce effective cap based on starvation
+	var penalty: int = int(floor(state.starvation_cap_penalty))
+	cap = max(0, cap - penalty)
+				
 	return cap
 
 func inject_item_db() -> void:

@@ -1,0 +1,107 @@
+@format "TOON 1.4"
+@context "Analysis of Overworld Architecture"
+@target_files
+  - "overworld.tscn"
+  - "Overworld.gd"
+
+@scene "overworld.tscn"
+  @root "Overworld"
+    type: "Node2D"
+    script: "res://Overworld.gd"
+  
+  @tree_structure
+    - "MapScenery" (Node2D)
+      @scale Vector2(6, 6)
+      @children
+        - "EditorMap" (Node2D)
+          script: "res://scripts/MapManager.gd"
+        - "MapManager" (Node2D)
+          script: "res://scripts/EditorMapLoader.gd"
+          @children
+            - "GridData" (TileMapLayer)
+              tile_set: "res://resources/GridDataTileSet.tres"
+        - "CharacterBody2D" (Instance)
+          source: "res://Actors/Bus.tscn"
+          note: "Player bus, scale impacted by parent"
+
+    - "PathLine" (Line2D)
+      z_index: 100
+      width: 5.0
+      color: "Red"
+
+    - "Oakmill" (Instance)
+      source: "res://Hub/Hub.tscn"
+      state: "res://data/Hubs/Oakmill.tres"
+
+    - "Stonegrove" (Instance)
+      source: "res://Hub/Hub.tscn"
+      state: "res://data/Hubs/Stonegrove.tres"
+
+    - "UILayer" (CanvasLayer)
+      @children
+        - "HubMenuUI" (Instance: res://UI/HubMenuUI.tscn)
+        - "MarketUI" (Instance: res://UI/MarketUI.tscn)
+        - "RecruitmentUI" (Instance: res://UI/RecruitmentUI.tscn)
+
+    - "BeastDen" (Instance)
+      source: "res://Beasts/BeastDen.tscn"
+      den_type: "res://data/BeastDens/ScrapjackalDen.tres"
+
+@script "Overworld.gd"
+  @extends Node2D
+  
+  @properties
+    @exports
+      bus_scene: PackedScene (default: uid://c14uenn8n47fb)
+      camera_scene: PackedScene
+      caravan_scene: PackedScene
+      item_db: ItemDB
+      caravan_spawn_interval: float (1.0s)
+    @state
+      _is_paused: bool
+      _path_world: PackedVector2Array
+      _caravan_type_counters: Dictionary
+      caravan_threshold_multipliers: Dictionary
+  
+  @systems
+    @initialization
+      - "Robustness Check": Reloads default scenes if null.
+      - "MapLoader Injection": Instantiates MapLoader into MapScenery.
+      - "MapManager Discovery": Locates MapManager in MapScenery or Root.
+      - "Bus Discovery/Spawning": Finds existing Bus (fixes scaling) or spawns new one.
+      - "Camera Setup": Instantiates Camera2D, injects dependencies.
+      - "UI Initialization": Creates CanvasLayers for Encounter, Market, Loot, GameOver UIs.
+    
+    @caravan_logic
+      method: "_try_spawn_caravans"
+      trigger: "_process" (every 1.0s)
+      algorithm:
+        1. Iterate all Hubs.
+        2. Check for item surplus based on CaravanType preferred tags.
+        3. threshold_multiplier increases by 5x after spawn to prevent spam.
+        4. Spawns Caravan instance, sets up State/Leader, injects dependencies.
+    
+    @navigation_logic
+      movement: "Handled by Bus.gd (move_to)"
+      pathfinding: "MapManager.get_path_world"
+      visualization:
+        node: "Line2D (PathLine)"
+        method: "_trim_path_as_bus_moves"
+        logic: "Trims points from Line2D as Bus approaches them (tolerance: 2.0)"
+    
+    @combat_interaction
+      flow:
+        1. "_on_encounter_initiated" -> Opens EncounterUI, sets _target_actor.
+        2. "_on_combat_ended" -> Closes EncounterUI.
+        3. Winner Check:
+           - If Player wins: Opens LootUI.
+           - If Player loses: Opens GameOverUI.
+      trade:
+        - "Opens MarketUI" if trade requested.
+        - "Transaction": Updates Player & Merchant inventories/cash. Awards Skill XP.
+    
+    @input_handling
+      mouse_left:
+        - If active chase: Cancel chase.
+        - "Visualize Path": Calls MapManager.
+        - "Move Bus": Calls _player_bus.move_to().

@@ -64,6 +64,17 @@ func _ready() -> void:
 		state = HubStates.new()
 	state.ensure_slots(9)
 	
+	# Initialize Governor Sheet
+	if state.governor_sheet == null:
+		state.governor_sheet = CharacterSheet.new()
+		state.governor_sheet.character_name = "Governor " + state.display_name
+		
+	# Ensure Trading Skill
+	if state.governor_sheet.get_skill(&"Trading") == null:
+		var skill_res = Skills.get_skill(&"Trading")
+		if skill_res:
+			state.governor_sheet.add_skill(skill_res)
+	
 	# Initialize troop stock if empty
 	if state.troop_stock.is_empty():
 		var troop_db: TroopDatabase = get_node_or_null("/root/TroopDatabase")
@@ -87,6 +98,18 @@ func _ready() -> void:
 	
 	# Wire proximity signals
 	_connect_proximity_signals()
+	
+	# Register as Map Chunk source (Visuals)
+	# Path: Hub -> Overworld -> MapScenery -> MapLoader
+	var map_loader = get_tree().get_root().find_child("MapLoader", true, false)
+	if map_loader and map_loader.has_method("register_source"):
+		map_loader.register_source(self)
+
+	# Register as Pathfinding Grid source (Logic)
+	# Path: Hub -> Overworld -> MapScenery -> MapManager
+	var map_manager = get_tree().get_root().find_child("MapManager", true, false)
+	if map_manager and map_manager.has_method("register_grid_source"):
+		map_manager.register_grid_source(name, global_position)
 
 func _initialize_components() -> void:
 	# Create components in dependency order

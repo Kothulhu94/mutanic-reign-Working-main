@@ -29,7 +29,7 @@ func display_inventory() -> void:
 		child.queue_free()
 
 	# Display money
-	money_label.text = "Money: %d" % bus.money
+	money_label.text = "Pacs: %d" % bus.pacs
 
 	# Display inventory items
 	if bus.inventory.is_empty():

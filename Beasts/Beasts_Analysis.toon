@@ -1,0 +1,61 @@
+@format "TOON 1.4"
+@context "Beasts & Ecosystem Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Beasts"
+
+@entity "Beast"
+  type: "Base Class (Area2D)"
+  script: "Beast.gd"
+  
+  @properties
+    movement_speed: float (80.0)
+    ai_behavior: Enum (roam, hunt_caravans, hunt_player, territorial)
+    charactersheet: "Combat Stats Container"
+
+  @behavior
+    - "Roam": Default state, wanders via MapManager pathfinding.
+    - "Signals": `player_initiated_chase` for combat start.
+    - "Optimization": Path smoothing to avoid center-of-cell backtracking.
+
+@entity "BeastDen"
+  type: "Spawner Building"
+  script: "BeastDen.gd"
+  
+  @features
+    - "Spawning": Tick-based logic via `Timekeeper`.
+    - "Emergency Spawn": Bursts units when health drops below threshold.
+    - "Navigation Obstacle": Carves holes in NavMesh (`NavigationCarver`).
+    - "Logic": Maintains `active_beasts` list, respects `max_active_beasts`.
+
+@ecosystem "Biomes"
+  @forest
+    - "CanopyPanther"
+    - "MycoStag"
+    - "ThornbackBoar"
+  
+  @grassland
+    - "ScrapjackalPack" (Featured AI logic inside)
+    - "TitanBison"
+    - "WindrunnerAntelope"
+  
+  @lake
+    - "GlassfinSwarm"
+    - "MudbackSnapper"
+    - "RippleLeviathan"
+  
+  @mesa
+    - "BasaltScuttlers"
+    - "CinderVulture"
+    - "SunspineRam"
+
+@ai_sample "ScrapjackalPack"
+  script: "Beasts/Grassland/ScrapjackalPack.gd"
+  behavior: "Aggressive Scavenger"
+  
+  @fsm
+    1. "ROAM": Wander until target found.
+    2. "HUNT": Pursue caravans or player.
+    3. "RETURN": Go back to Den if too far.
+  
+  @unique
+    - "Pack Logic": Can coordinate with other Scrapjackals (future ext).
+    - "Loot Interest": Prefer targets with specific items (future ext).

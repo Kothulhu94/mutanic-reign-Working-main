@@ -12,7 +12,7 @@ extends Node2D
 const NAV_LAYERS: int = 1 # keep in lockstep with the NavigationAgent2D
 
 # How close to a waypoint counts as "consumed"
-@export var path_trim_tolerance: float = 12.0
+@export var path_trim_tolerance: float = 2.0
 
 # Caravan system
 @export var item_db: ItemDB
@@ -34,11 +34,13 @@ var _is_paused: bool = false
 
 var _player_bus: Bus
 var _encounter_ui: Control
+var _market_ui: MarketUI # Generic market UI for caravan trading
 var _loot_ui: Control
 var _game_over_ui: Control
 
 # Grid-Based Pathfinding
 var map_manager: MapManager
+var _target_actor: Node2D = null # Track target for cleanup
 
 func _ready() -> void:
 	# Robustness: Reload defaults if Inspector overrides set them to null
@@ -178,6 +180,30 @@ func _ready() -> void:
 	encounter_canvas.add_child(_encounter_ui)
 	_encounter_ui.combat_ended.connect(_on_combat_ended)
 	_encounter_ui.exit_pressed.connect(_on_encounter_exit)
+	if _encounter_ui.has_signal("trade_requested"):
+		_encounter_ui.trade_requested.connect(_on_encounter_trade_requested)
+
+	# Initialize Generic Market UI (for Caravan trading)
+	var market_canvas: CanvasLayer = CanvasLayer.new()
+	market_canvas.layer = 10
+	market_canvas.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(market_canvas)
+	
+	# Reuse existing MarketUI scene if possible, or load it
+	# Assuming standard path res://UI/MarketUI.tscn (uid://???)
+	# I don't have the UID handy here easily without searching.
+	# Let's search later or assume generic load.
+	# I'll use load("res://UI/MarketUI.tscn") which works if path logic is standard.
+	# Wait, I should use uid if possible.
+	# Found in previous search: MarketUI.tscn exists.
+	var market_ui_scene: PackedScene = load("res://UI/MarketUI.tscn")
+	if market_ui_scene:
+		_market_ui = market_ui_scene.instantiate() as MarketUI
+		_market_ui.process_mode = Node.PROCESS_MODE_ALWAYS
+		market_canvas.add_child(_market_ui)
+		_market_ui.market_closed.connect(_on_market_closed)
+		_market_ui.transaction_confirmed.connect(_on_market_transaction_confirmed)
+
 
 	var loot_canvas: CanvasLayer = CanvasLayer.new()
 	loot_canvas.layer = 10
@@ -201,8 +227,9 @@ func _ready() -> void:
 	game_over_canvas.add_child(_game_over_ui)
 
 	# Connect any pre-existing caravan signals
+	# Connect any pre-existing caravan signals
 	for caravan in get_tree().get_nodes_in_group("caravans"):
-		if caravan is Caravan:
+		if caravan.has_signal("player_initiated_chase"):
 			caravan.player_initiated_chase.connect(_on_chase_initiated)
 
 	# Connect any pre-existing beast den signals
@@ -492,6 +519,12 @@ func _on_chase_initiated(target_actor: Node2D) -> void:
 		_player_bus.chase_target(target_actor)
 
 func _on_encounter_initiated(attacker: Node2D, defender: Node2D) -> void:
+	# Track defender as potential target to remove
+	if attacker == _player_bus:
+		_target_actor = defender
+	else:
+		_target_actor = attacker
+		
 	if _encounter_ui != null:
 		_encounter_ui.open_encounter(attacker, defender)
 
@@ -518,7 +551,106 @@ func _on_encounter_exit() -> void:
 	if _encounter_ui != null:
 		_encounter_ui.close_ui()
 
-func _on_loot_closed(_target_actor) -> void:
-	# Free the target actor now that looting is complete
 	if _target_actor != null and _target_actor != _player_bus:
 		_target_actor.queue_free()
+
+func _on_encounter_trade_requested(attacker: Node2D, defender: Node2D) -> void:
+	# Open market with defender (Caravan)
+	# Encounter UI is typically attacker=Player, defender=Caravan
+	# But verify.
+	var merchant = defender
+	if attacker != _player_bus:
+		merchant = attacker
+		
+	if _market_ui != null:
+		# Pause game (MarketUI handles it internally usually, but let's be safe)
+		# Duck typing check instead of class check
+		if merchant is Hub or merchant.is_in_group("caravans"):
+			_market_ui.open(_player_bus, merchant)
+		else:
+			push_warning("Cannot trade with non-merchant entity")
+
+func _on_market_closed() -> void:
+	var timekeeper: Node = get_node_or_null("/root/Timekeeper")
+	if timekeeper != null and timekeeper.has_method("set_paused"):
+		timekeeper.set_paused(false)
+
+func _on_loot_closed(_target: Node2D = null) -> void:
+	var timekeeper: Node = get_node_or_null("/root/Timekeeper")
+	if timekeeper != null and timekeeper.has_method("set_paused"):
+		timekeeper.set_paused(false)
+	
+	if _target_actor != null:
+		_target_actor.queue_free()
+		_target_actor = null
+
+func _on_market_transaction_confirmed(cart: Array[Dictionary]) -> void:
+	if _player_bus == null:
+		return
+		
+	for entry in cart:
+		var item_id = entry.get("item_id")
+		var buy_qty = entry.get("buy_qty", 0)
+		var sell_qty = entry.get("sell_qty", 0)
+		var price = entry.get("unit_price", 0.0)
+		var cost = buy_qty * price
+		var revenue = sell_qty * price
+		var side = entry.get("side") # "buy" or "sell"
+		
+		# Validate active merchant? MarketUI holds reference `current_merchant`.
+		# We should probably trust the cart or re-validate.
+		# Ideally use _market_ui.current_merchant
+		var merchant = _market_ui.current_merchant
+		if merchant == null:
+			return
+
+		if side == "buy":
+			if _player_bus.pacs >= cost:
+				# Deduct money
+				_player_bus.pacs -= cost
+				# Add item to player
+				_player_bus.add_item(item_id, buy_qty)
+				
+				# Update Merchant
+				if merchant.is_in_group("caravans") and "caravan_state" in merchant:
+					var s = merchant.caravan_state
+					if s:
+						s.pacs += cost
+						s.remove_item(item_id, buy_qty)
+				elif merchant is Hub:
+					merchant.state.pacs += cost
+					# Hub inventory logic...
+					# Basic override for now
+					var current = merchant.state.inventory.get(item_id, 0)
+					merchant.state.inventory[item_id] = max(0, current - buy_qty)
+
+				# Skill XP
+				if _player_bus.has_method("award_skill_xp"):
+					_player_bus.award_skill_xp(&"market_analysis", float(cost))
+
+		elif side == "sell":
+			if _player_bus.remove_item(item_id, sell_qty):
+				# Add money
+				_player_bus.pacs += revenue
+				
+				# Update Merchant
+				if merchant.is_in_group("caravans") and "caravan_state" in merchant:
+					var s = merchant.caravan_state
+					if s:
+						s.pacs -= revenue
+						s.add_item(item_id, sell_qty)
+				elif merchant is Hub:
+					merchant.state.pacs -= revenue
+					merchant.state.inventory[item_id] = merchant.state.inventory.get(item_id, 0) + sell_qty
+				
+				# Skill XP
+				if _player_bus.has_method("award_skill_xp"):
+					_player_bus.award_skill_xp(&"market_analysis", float(revenue))
+					_player_bus.award_skill_xp(&"negotiation_tactics", float(revenue))
+					_player_bus.award_skill_xp(&"master_merchant", float(revenue))
+					if sell_qty > 50:
+						_player_bus.award_skill_xp(&"market_monopoly", float(revenue))
+
+	# Refresh UI
+	_market_ui._clear_cart()
+	_market_ui._populate_ui()

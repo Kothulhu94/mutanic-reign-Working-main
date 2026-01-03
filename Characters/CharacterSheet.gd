@@ -30,6 +30,85 @@ var troop_inventory: Dictionary = {}
 ## Maximum number of troops that can be recruited
 @export var max_troop_capacity: int = 10
 
+## General Item Inventory
+## Dictionary of items: { item_id (StringName) -> count (int) }
+var inventory: Dictionary = {}
+
+## Inventory Limits
+## Can be modified by Perks/Skills
+@export var base_max_slots: int = 5
+@export var base_max_stack_size: int = 25
+
+## Signal for inventory changes (UI updates)
+signal inventory_changed(item_id: StringName, new_amount: int)
+
+# --- Inventory Management ---
+
+func get_max_slots() -> int:
+	# TODO: Add perk modifiers here
+	# e.g. return base_max_slots + get_skill_modifier(&"Logistics", 5)
+	return base_max_slots
+
+func get_max_stack_size() -> int:
+	# TODO: Add perk modifiers here
+	return base_max_stack_size
+
+## Checks if a specific amount of an item can be added without exceeding limits.
+func can_add_item(item_id: StringName, amount: int) -> bool:
+	if amount <= 0:
+		return true
+
+	var current_amount: int = inventory.get(item_id, 0)
+	var is_new_stack: bool = not inventory.has(item_id) or current_amount == 0
+	
+	var stack_limit: int = get_max_stack_size()
+	var slot_limit: int = get_max_slots()
+
+	# Check 1: Max stack size for this specific item
+	if current_amount + amount > stack_limit:
+		# print("Cannot add %d %s: Exceeds max stack size (%d)." % [amount, item_id, stack_limit])
+		return false
+
+	# Check 2: Max unique stacks if this is a new item type
+	if is_new_stack and inventory.size() >= slot_limit:
+		# print("Cannot add %s: Exceeds max unique stacks (%d)." % [item_id, slot_limit])
+		return false
+
+	return true
+
+## Adds a specified amount of an item to the inventory.
+func add_item(item_id: StringName, amount: int) -> bool:
+	if amount <= 0:
+		return false
+
+	if can_add_item(item_id, amount):
+		var new_amount: int = inventory.get(item_id, 0) + amount
+		inventory[item_id] = new_amount
+		inventory_changed.emit(item_id, new_amount)
+		return true
+	
+	return false
+
+## Removes a specified amount of an item from the inventory.
+func remove_item(item_id: StringName, amount: int) -> bool:
+	if amount <= 0:
+		return false
+
+	var current_amount: int = inventory.get(item_id, 0)
+	if current_amount < amount:
+		return false
+	
+	var new_amount: int = current_amount - amount
+	inventory[item_id] = new_amount
+	
+	if new_amount <= 0:
+		inventory.erase(item_id)
+		inventory_changed.emit(item_id, 0)
+	else:
+		inventory_changed.emit(item_id, new_amount)
+		
+	return true
+
 ## Equipment System
 enum EquipmentSlot {
 	HEAD,

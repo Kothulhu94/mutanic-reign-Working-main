@@ -22,6 +22,7 @@ var food_level: float = 0.0
 var infrastructure_level: float = 0.0
 var medical_level: float = 0.0
 var luxury_level: float = 0.0
+var food_stock_servings: float = 0.0
 
 func setup(s: HubStates, db: ItemDB, config: EconomyConfig, bldg_mgr: HubBuildingManager) -> void:
 	state = s
@@ -66,6 +67,7 @@ func _update_resource_levels(results: Dictionary) -> void:
 	infrastructure_level = float(results.get("infrastructure_level", 0.0))
 	medical_level = float(results.get("medical_level", 0.0))
 	luxury_level = float(results.get("luxury_level", 0.0))
+	food_stock_servings = float(results.get("food_stock_servings", 0.0))
 
 func _calc_governor_bonuses(governor_id: StringName) -> Dictionary:
 	var governor_productivity_bonus: float = 0.0

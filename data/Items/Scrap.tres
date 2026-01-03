@@ -6,6 +6,6 @@
 script = ExtResource("1_ntxqp")
 id = &"Scrap"
 display_name = "Scrap"
-tags = Array[StringName]([&"material", &"alloy", &"ingredient"])
+tags = Array[StringName]([&"material", &"metal", &"ingredient"])
 base_price = 6.0
 metadata/_custom_type_script = "uid://s1txlrx5unui"

@@ -35,8 +35,8 @@ func recalculate_bonuses() -> void:
 	if trading_skill == null:
 		return
 		
-	# Base Trading Level Bonus: +/- 0.05 per level
-	price_modifier_bonus = float(trading_skill.current_level) * 0.05
+	# Base Trading Level Bonus: +/- 0.005 per level (0.5%)
+	price_modifier_bonus = float(trading_skill.current_level) * 0.005
 	
 	# Perks
 	# CaravanLogistics

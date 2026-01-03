@@ -44,6 +44,10 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "Attack"
 
+[node name="TradeButton" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "Trade"
+
 [node name="ExitButton" type="Button" parent="Panel/VBoxContainer"]
 layout_mode = 2
 text = "Exit"

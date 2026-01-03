@@ -10,7 +10,7 @@ signal save_load_closed()
 @onready var create_slot_button: Button = $Panel/VBoxContainer/NewSlotContainer/CreateSlotButton
 @onready var close_button: Button = $Panel/VBoxContainer/CloseButton
 
-enum Mode { SAVE, LOAD }
+enum Mode {SAVE, LOAD}
 var current_mode: Mode = Mode.SAVE
 
 func _ready() -> void:
@@ -103,9 +103,9 @@ func _create_slot_row(slot_name: String) -> void:
 		player_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 		info_container.add_child(player_label)
 
-	if info.has("player_money"):
+	if info.has("player_pacs"):
 		var money_label: Label = Label.new()
-		money_label.text = "Money: %d PACs" % info.get("player_money", 0)
+		money_label.text = "Pacs: %d" % info.get("player_pacs", 0)
 		money_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
 		info_container.add_child(money_label)
 

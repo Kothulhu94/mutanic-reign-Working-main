@@ -135,6 +135,11 @@ func tick(dt: float, cap: int, int_inv: Dictionary, float_inv: Dictionary, build
 	result["luxury_level"] = luxury_level_now
 	result["consumed"] = telemetry_consumed
 	result["produced"] = telemetry_produced
+	
+	# New Telemetry for Starvation Calculation
+	# Calculate total servings available in current stock (after tick)
+	result["food_stock_servings"] = _servings_available_in(working)
+	
 	return result
 
 # Small helper: accumulate positive magnitudes

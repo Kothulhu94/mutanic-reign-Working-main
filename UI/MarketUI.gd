@@ -18,7 +18,7 @@ signal market_closed()
 @onready var cancel_button: Button = $MarginContainer/VBoxContainer/FooterContainer/CancelButton
 
 var current_bus: Bus = null
-var current_hub: Hub = null
+var current_merchant: Node = null # Can be Hub or Caravan
 
 var cart: Dictionary = {}
 var last_clicked_item: StringName = StringName()
@@ -41,17 +41,17 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_on_cancel_pressed()
 
-func open(bus_ref: Bus, hub_ref: Hub) -> void:
+func open(bus_ref: Bus, merchant_ref: Node) -> void:
 	if bus_ref == null:
 		push_error("MarketUI: Cannot open with null bus")
 		return
 
-	if hub_ref == null:
-		push_error("MarketUI: Cannot open with null hub")
+	if merchant_ref == null:
+		push_error("MarketUI: Cannot open with null merchant")
 		return
 
 	current_bus = bus_ref
-	current_hub = hub_ref
+	current_merchant = merchant_ref
 
 	_clear_cart()
 	_populate_ui()
@@ -70,7 +70,7 @@ func close_market() -> void:
 
 	market_closed.emit()
 	current_bus = null
-	current_hub = null
+	current_merchant = null
 
 func _clear_cart() -> void:
 	cart.clear()
@@ -78,17 +78,17 @@ func _clear_cart() -> void:
 	_update_net_total()
 
 func _populate_ui() -> void:
-	if current_bus == null or current_hub == null or current_hub.state == null:
+	if current_bus == null or current_merchant == null:
 		return
 
 	if title_label != null:
-		title_label.text = "%s - Market" % current_hub.state.display_name
+		title_label.text = "%s - Market" % _get_merchant_name()
 
 	if player_name_label != null:
 		player_name_label.text = current_bus.name
 
 	if hub_name_label != null:
-		hub_name_label.text = current_hub.state.display_name
+		hub_name_label.text = _get_merchant_name()
 
 	_update_money_labels()
 	_populate_player_list()
@@ -96,10 +96,10 @@ func _populate_ui() -> void:
 
 func _update_money_labels() -> void:
 	if current_bus != null and player_money_label != null:
-		player_money_label.text = "Money: %d" % current_bus.money
+		player_money_label.text = "Pacs: %d" % current_bus.pacs
 
-	if current_hub != null and current_hub.state != null and hub_money_label != null:
-		hub_money_label.text = "Money: %d" % current_hub.state.money
+	if current_merchant != null and hub_money_label != null:
+		hub_money_label.text = "Pacs: %d" % _get_merchant_money()
 
 func _populate_player_list() -> void:
 	if player_item_list == null or current_bus == null:
@@ -120,20 +120,21 @@ func _populate_player_list() -> void:
 			_create_item_row(item_id, "player", stock)
 
 func _populate_hub_list() -> void:
-	if hub_item_list == null or current_hub == null or current_hub.state == null:
+	if hub_item_list == null or current_merchant == null:
 		return
 
 	for child in hub_item_list.get_children():
 		child.queue_free()
 	hub_row_nodes.clear()
 
+	var merchant_inv: Dictionary = _get_merchant_inventory()
 	var sorted_items: Array[StringName] = []
-	for k in current_hub.state.inventory.keys():
+	for k in merchant_inv.keys():
 		sorted_items.append(k if k is StringName else StringName(str(k)))
 	sorted_items.sort_custom(func(a: StringName, b: StringName): return str(a) < str(b))
 
 	for item_id: StringName in sorted_items:
-		var stock: int = current_hub.state.inventory.get(item_id, 0)
+		var stock: int = merchant_inv.get(item_id, 0)
 		if stock > 0:
 			_create_item_row(item_id, "hub", stock)
 
@@ -180,7 +181,7 @@ func _create_item_row(item_id: StringName, side: String, stock: int) -> void:
 	plus_button.custom_minimum_size = Vector2(30, 0)
 	plus_button.pressed.connect(_on_quantity_adjust.bind(item_id, side, 1))
 
-	var price: float = _get_item_price(item_id, current_hub)
+	var price: float = _get_item_price(item_id, current_merchant, side)
 	var price_label: Label = Label.new()
 	price_label.text = "× %.1f" % price
 
@@ -351,7 +352,7 @@ func _validate_and_update_confirm_button(net_cost: float) -> void:
 	if confirm_button == null or current_bus == null:
 		return
 
-	var can_afford: bool = current_bus.money >= int(ceil(max(0.0, net_cost)))
+	var can_afford: bool = current_bus.pacs >= int(ceil(max(0.0, net_cost)))
 
 	confirm_button.disabled = not can_afford
 
@@ -360,23 +361,41 @@ func _validate_and_update_confirm_button(net_cost: float) -> void:
 	else:
 		confirm_button.remove_theme_color_override("font_color")
 
-func _get_item_price(item_id: StringName, hub: Hub) -> float:
-	if hub == null:
-		return 1.0
+func _get_item_price(item_id: StringName, merchant: Node, side: String = "") -> float:
+	var base_price: float = 1.0
 
-	if hub.item_prices.has(item_id):
-		return float(hub.item_prices[item_id])
+	if merchant != null:
+		# Duck-type attempt 1: item_prices dict (Hub)
+		if merchant.get("item_prices") != null and merchant.item_prices.has(item_id):
+			base_price = float(merchant.item_prices[item_id])
+		# Duck-type attempt 2: get_item_price method (Hub or Caravan)
+		elif merchant.has_method("get_item_price"):
+			base_price = merchant.get_item_price(item_id)
+		# Duck-type attempt 3: item_db method
+		elif merchant.get("item_db") != null and merchant.item_db.has_method("price_of"):
+			base_price = merchant.item_db.price_of(item_id)
 
-	if hub.has_method("get_item_price"):
-		return hub.get_item_price(item_id)
+	# Apply Trading Skills
+	var player_bonus: float = 0.0
+	if current_bus and current_bus.charactersheet:
+		player_bonus = _calculate_skill_bonus(current_bus.charactersheet)
 
-	if hub.item_db != null and hub.item_db.has_method("price_of"):
-		return hub.item_db.price_of(item_id)
+	var merchant_bonus: float = _get_merchant_skill_bonus()
+	var net_modifier: float = player_bonus - merchant_bonus
 
-	return 1.0
+	if side == "hub": # Buying from hub
+		# Discount (positive net_modifier reduces price)
+		# User Request: Buying prices rounded UP
+		return ceil(maxf(0.1, base_price * (1.0 - net_modifier)))
+	elif side == "player": # Selling to hub
+		# Premium (positive net_modifier increases yield)
+		# User Request: Selling prices rounded DOWN
+		return floor(base_price * (1.0 + net_modifier))
+	
+	return base_price
 
 func _on_confirm_pressed() -> void:
-	if current_bus == null or current_hub == null or current_hub.state == null:
+	if current_bus == null or current_merchant == null:
 		return
 
 	var transaction_cart: Array[Dictionary] = []
@@ -408,12 +427,146 @@ func _on_confirm_pressed() -> void:
 			})
 
 	if transaction_cart.size() > 0:
+		# Process generic transaction directly here if simple
+		# Or emit signal for controller to handle.
+		# For generic implementation, let's process it here or rely on signal listener.
+		# Hubs use HubUIController. Caravans use Overworld?
+		# To standardize, MarketUI should arguably APPLY the transaction if it owns the logic,
+		# or emit.
+		# Existing Hub logic relied on HubUIController listening to 'transaction_confirmed'.
+		# For Caravans, Overworld/EncounterUI will listen.
 		transaction_confirmed.emit(transaction_cart)
+		
+		# Execute transaction logic right here as fallback/standard?
+		# No, kept separate to avoid breaking Hub logic which is external.
+		# BUT wait, the Hub logic in HubUIController duplicates checks.
+		# Let's support SELF-execution for Caravan mode if listener handles it?
+		# Actually, let's just emit. The listener (Overworld) will apply changes.
+		
+		# --- Award Trading XP ---
+		if current_bus != null and current_bus.charactersheet != null:
+			var trading_skill: Skill = current_bus.charactersheet.get_skill(&"Trading")
+			if trading_skill != null:
+				var total_xp: float = 0.0
+				
+				for item in transaction_cart:
+					var subtotal: float = float(item.get("subtotal", 0.0))
+					var side: String = item.get("side", "")
+					
+					# 1 XP per Pac when buying
+					if side == "buy":
+						total_xp += subtotal
+					# 2 XP per Pac when selling
+					elif side == "sell":
+						total_xp += (subtotal * 2.0)
+				
+				if total_xp > 0:
+					trading_skill.add_xp(total_xp)
+					print("MarketUI: Awarded %.1f XP to Trading skill" % total_xp)
+
+		transaction_confirmed.emit(transaction_cart)
+		pass
 
 	_clear_cart()
 	_populate_ui()
 
+	_clear_cart()
+	close_market()
+
+func _get_merchant_name() -> String:
+	if current_merchant == null:
+		return "Unknown"
+	if current_merchant is Hub:
+		return current_merchant.state.display_name if current_merchant.state else "Hub"
+	elif current_merchant.is_in_group("caravans"):
+		return current_merchant.name
+	return current_merchant.name
+
+func _get_merchant_money() -> int:
+	if current_merchant == null:
+		return 0
+	if current_merchant is Hub:
+		return current_merchant.state.pacs if current_merchant.state else 0
+	elif current_merchant.is_in_group("caravans") and "caravan_state" in current_merchant:
+		var s = current_merchant.caravan_state
+		return s.pacs if s else 0
+	return 0
+
+func _get_merchant_inventory() -> Dictionary:
+	if current_merchant == null:
+		return {}
+	if current_merchant is Hub:
+		return current_merchant.state.inventory if current_merchant.state else {}
+	elif current_merchant.is_in_group("caravans") and "caravan_state" in current_merchant:
+		var s = current_merchant.caravan_state
+		return s.inventory if s else {}
+	return {}
+
+func _update_merchant_inventory_delta(item_id: StringName, amount: int) -> void:
+	if current_merchant == null:
+		return
+		
+	# Both generic logic
+	if current_merchant is Hub:
+		if amount > 0: # Adding to merchant (sell)
+			current_merchant.state.inventory[item_id] = current_merchant.state.inventory.get(item_id, 0) + amount
+		else: # Removing from merchant (buy)
+			var current: int = current_merchant.state.inventory.get(item_id, 0)
+			current_merchant.state.inventory[item_id] = max(0, current + amount)
+			
+	elif current_merchant.is_in_group("caravans") and "caravan_state" in current_merchant:
+		if amount > 0:
+			current_merchant.caravan_state.add_item(item_id, amount)
+		else:
+			current_merchant.caravan_state.remove_item(item_id, abs(amount))
+
+func _update_merchant_money(delta: int) -> void:
+	if current_merchant == null:
+		return
+	if current_merchant is Hub:
+		current_merchant.state.pacs += delta
+	elif current_merchant.is_in_group("caravans") and "caravan_state" in current_merchant:
+		current_merchant.caravan_state.pacs += delta
+
+func _get_merchant_skill_bonus() -> float:
+	if current_merchant == null:
+		return 0.0
+		
+	if current_merchant.is_in_group("caravans"):
+		# Caravans have a CaravanSkillSystem component
+		if "skill_system" in current_merchant and current_merchant.skill_system != null:
+			return current_merchant.skill_system.price_modifier_bonus
+			
+	# Hubs now have a Governor sheet
+	if current_merchant is Hub:
+		if current_merchant.state != null and current_merchant.state.governor_sheet != null:
+			return _calculate_skill_bonus(current_merchant.state.governor_sheet)
+
+	return 0.0
+
+func _calculate_skill_bonus(sheet: CharacterSheet) -> float:
+	if sheet == null:
+		return 0.0
+		
+	var skill = sheet.get_skill(&"Trading")
+	if skill == null:
+		return 0.0
+		
+	# 0.5% per level
+	var bonus: float = float(skill.current_level) * 0.005
+	
+	# Perk Bonuses
+	if skill.has_perk(&"economic_dominance"):
+		bonus += 0.1
+	if skill.has_perk(&"market_monopoly"):
+		bonus += 0.1
+		
+	return bonus
+
 func _on_cancel_pressed() -> void:
 	transaction_canceled.emit()
 	_clear_cart()
-	close_market()
+	hide()
+	var timekeeper: Node = get_node_or_null("/root/Timekeeper")
+	if timekeeper != null and timekeeper.has_method("set_paused"):
+		timekeeper.set_paused(false)

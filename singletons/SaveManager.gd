@@ -79,7 +79,7 @@ func _save_player_data(save_data: Dictionary, player_node: Bus) -> void:
 		player_sheet = _serialize_character_sheet(player_node.charactersheet)
 	player_data["sheet"] = player_sheet
 	player_data["inventory"] = player_node.inventory.duplicate(true)
-	player_data["money"] = player_node.money
+	player_data["pacs"] = player_node.pacs
 	player_data["max_unique_stacks"] = player_node.max_unique_stacks
 	player_data["max_stack_size"] = player_node.max_stack_size
 
@@ -93,8 +93,8 @@ func _save_caravan_data(save_data: Dictionary) -> void:
 
 	var caravans: Array[Node] = get_tree().get_nodes_in_group("caravans")
 	for caravan_node: Node in caravans:
-		if caravan_node is Caravan:
-			var caravan: Caravan = caravan_node as Caravan
+		if caravan_node.is_in_group("caravans"):
+			var caravan: Node = caravan_node
 			var caravan_data: Dictionary = {}
 
 			caravan_data["position"] = {"x": caravan.global_position.x, "y": caravan.global_position.y}
@@ -164,7 +164,7 @@ func _load_player_data(save_data: Dictionary) -> void:
 		player_node.charactersheet = CharacterSheet.new()
 
 	player_node.inventory = player_data.get("inventory", {}).duplicate(true)
-	player_node.money = player_data.get("money", 1000)
+	player_node.pacs = player_data.get("pacs", 1000)
 	player_node.max_unique_stacks = player_data.get("max_unique_stacks", 16)
 	player_node.max_stack_size = player_data.get("max_stack_size", 100)
 
@@ -218,7 +218,7 @@ func _load_caravan_data(save_data: Dictionary) -> void:
 	var all_hubs: Array[Hub] = _get_all_hubs()
 
 	for caravan_data: Dictionary in caravan_list:
-		var new_caravan: Caravan = caravan_scene.instantiate() as Caravan
+		var new_caravan: Node = caravan_scene.instantiate()
 		if new_caravan == null:
 			continue
 
@@ -228,7 +228,7 @@ func _load_caravan_data(save_data: Dictionary) -> void:
 		if state_data != null and state_data is Dictionary:
 			new_caravan.caravan_state = _deserialize_caravan_state(state_data)
 
-		new_caravan.current_state = caravan_data.get("current_state", Caravan.State.IDLE)
+		new_caravan.current_state = caravan_data.get("current_state", 0)
 		new_caravan.purchase_prices = caravan_data.get("purchase_prices", {}).duplicate(true)
 
 		var home_hub_id_str: String = caravan_data.get("home_hub_id", "")
@@ -297,14 +297,14 @@ func _reinitialize_player_health(player_node: Bus) -> void:
 				player_node.charactersheet.get_effective_health()
 			)
 
-func _reinitialize_caravan_health(caravan: Caravan) -> void:
+func _reinitialize_caravan_health(caravan: Node) -> void:
 	if caravan.caravan_state == null or caravan.caravan_state.leader_sheet == null:
 		return
 
 	caravan.caravan_state.leader_sheet.initialize_health()
 
 	if caravan._health_visual == null:
-		var health_visual_scene: PackedScene = preload("res://UI/ActorHealthVisual.tscn")
+		var health_visual_scene: PackedScene = load("uid://cvjf8x5qn3m2p")
 		caravan._health_visual = health_visual_scene.instantiate() as Control
 		if caravan._health_visual != null:
 			caravan.add_child(caravan._health_visual)
@@ -387,7 +387,7 @@ func get_save_info(slot_name: String) -> Dictionary:
 					var sheet_data: Dictionary = player_data["sheet"]
 					info["player_name"] = sheet_data.get("character_name", "Unknown")
 					info["player_level"] = sheet_data.get("level", 1)
-				info["player_money"] = player_data.get("money", 0)
+				info["player_pacs"] = player_data.get("pacs", 0)
 
 			if save_data.has("caravans"):
 				info["caravan_count"] = save_data["caravans"].size()
@@ -491,7 +491,7 @@ func _serialize_caravan_state(state: CaravanState) -> Dictionary:
 	data["home_hub_id"] = str(state.home_hub_id)
 	data["destination_hub_id"] = str(state.destination_hub_id)
 	data["inventory"] = state.inventory.duplicate(true)
-	data["money"] = state.money
+	data["pacs"] = state.pacs
 	data["profit_this_trip"] = state.profit_this_trip
 	data["current_leg"] = state.current_leg
 	var leader_sheet_data: Variant = null
@@ -509,7 +509,7 @@ func _deserialize_caravan_state(data: Dictionary) -> CaravanState:
 	state.home_hub_id = StringName(data.get("home_hub_id", ""))
 	state.destination_hub_id = StringName(data.get("destination_hub_id", ""))
 	state.inventory = data.get("inventory", {}).duplicate(true)
-	state.money = data.get("money", 0)
+	state.pacs = data.get("pacs", 0)
 	state.profit_this_trip = data.get("profit_this_trip", 0)
 	state.current_leg = data.get("current_leg", CaravanState.Leg.OUTBOUND)
 
@@ -531,10 +531,20 @@ func _serialize_hub_state(state: HubStates) -> Dictionary:
 	data["hub_id"] = str(state.hub_id)
 	data["display_name"] = state.display_name
 	data["governor_id"] = str(state.governor_id)
-	data["money"] = state.money
+	data["pacs"] = state.pacs
 	data["inventory"] = state.inventory.duplicate(true)
 	data["base_population_cap"] = state.base_population_cap
+	data["pacs"] = state.pacs
+	data["inventory"] = state.inventory.duplicate(true)
+	data["base_population_cap"] = state.base_population_cap
+	data["starvation_cap_penalty"] = state.starvation_cap_penalty
 	data["trade_prices"] = state.trade_prices.duplicate(true)
+	data["trade_prices"] = state.trade_prices.duplicate(true)
+	
+	var governor_sheet_data: Variant = null
+	if state.governor_sheet != null:
+		governor_sheet_data = _serialize_character_sheet(state.governor_sheet)
+	data["governor_sheet"] = governor_sheet_data
 
 	return data
 
@@ -543,10 +553,18 @@ func _deserialize_hub_state(data: Dictionary) -> HubStates:
 	state.hub_id = StringName(data.get("hub_id", ""))
 	state.display_name = data.get("display_name", "Settlement")
 	state.governor_id = StringName(data.get("governor_id", ""))
-	state.money = data.get("money", 0)
+	state.pacs = data.get("pacs", 0)
 	state.inventory = data.get("inventory", {}).duplicate(true)
 	state.base_population_cap = data.get("base_population_cap", 100)
+	state.inventory = data.get("inventory", {}).duplicate(true)
+	state.base_population_cap = data.get("base_population_cap", 100)
+	state.starvation_cap_penalty = data.get("starvation_cap_penalty", 0.0)
 	state.trade_prices = data.get("trade_prices", {}).duplicate(true)
+	state.trade_prices = data.get("trade_prices", {}).duplicate(true)
+	
+	var sheet_data: Variant = data.get("governor_sheet", null)
+	if sheet_data != null and sheet_data is Dictionary:
+		state.governor_sheet = _deserialize_character_sheet(sheet_data)
 
 	return state
 

@@ -1,0 +1,83 @@
+@format "TOON 1.4"
+@context "Actors & AI Systems Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Actors"
+
+@actor "Bus"
+  type: "Player Avatar"
+  scene: "Bus.tscn"
+  script: "bus.gd"
+  class_name: "Bus"
+  extends: "CharacterBody2D"
+  
+  @state
+    movement: "Point-and-click pathfinding via MapManager"
+    inventory: "Delegated to internal CharacterSheet"
+    economy: "Tracks PACs (currency) and trading skills"
+    combat: "Initiates collision-based encounters"
+  
+  @interaction
+    - "Chase Target": Pursues Caravans or BeastDens.
+    - "Signals": `encounter_initiated`, `chase_started`.
+    - "Trading XP": Tracks session volume to award RPG skill XP (e.g., `market_analysis`, `economic_dominance`).
+
+@actor "Caravan"
+  type: "AI Trader"
+  scene: "caravan.tscn"
+  script: "Caravan.gd"
+  class_name: "Caravan"
+  extends: "Area2D"
+  
+  @architecture "Component-Based"
+    - "Navigator": `CaravanNavigator` (Movement)
+    - "Skills": `CaravanSkillSystem` (RPG Stats)
+    - "Trading": `CaravanTradingSystem` (Economy)
+  
+  @fsm_states
+    1. "IDLE": Wait at home.
+    2. "BUYING_AT_HOME": Purchase surplus goods.
+    3. "TRAVELING": Move to target hub.
+    4. "EVALUATING_TRADE": Check profitability.
+    5. "SELLING": Offload goods.
+    6. "RETURNING_HOME": Pay tax and rest.
+
+  @spawning_logic
+    trigger: "Hub surplus > threshold"
+    lifecycle: "Loop between hubs -> Profit -> Return -> Tax -> Repeat"
+
+@component "CaravanNavigator"
+  script: "CaravanNavigator.gd"
+  role: "Pathfinding Controller"
+  
+  @methods
+    - "Grid Movement": Uses `MapManager.get_path_world` when on-screen.
+    - "Abstract Movement": Teleports/Linear interpolates when off-screen/OOB to save performance.
+
+@component "CaravanSkillSystem"
+  script: "CaravanSkillSystem.gd"
+  role: "RPG Stat Manager"
+  
+  @bonuses
+    - "Speed": +0.5% per Trading level, +Perks.
+    - "Capacity": +0.5% per Trading level, +Leadership.
+    - "Price": Better buy/sell rates based on `market_monopoly` etc.
+
+@component "CaravanTradingSystem"
+  script: "CaravanTradingSystem.gd"
+  role: "Economic Logic Core"
+  
+  @logic
+    - "Buy": Prioritizes items with preferred tags at home hub.
+    - "Sell": Travels to other hubs, checks price delta > 0.
+    - "Memory": Tracks visited hubs to avoid loops.
+
+@actor "PlayerCamera"
+  type: "Camera Controller"
+  scene: "PlayerCamera.tscn"
+  script: "player_camera.gd"
+  class_name: "PlayerCamera" 
+  
+  @features
+    - "Follow": Locks to `Bus.tscn` instance.
+    - "Pan": MMB drag or WASD keys.
+    - "Zoom": Dynamic clamping based on viewport size.
+    - "Snap": Smoothly returns to player when moving.

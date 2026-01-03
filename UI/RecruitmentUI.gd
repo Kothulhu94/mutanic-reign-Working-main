@@ -89,7 +89,7 @@ func _update_player_info() -> void:
 	var troop_count: int = sheet.get_total_troop_count()
 	var max_troops: int = sheet.max_troop_capacity
 
-	player_info_label.text = "Money: %d | Troops: %d / %d" % [current_bus.money, troop_count, max_troops]
+	player_info_label.text = "Pacs: %d | Troops: %d / %d" % [current_bus.pacs, troop_count, max_troops]
 
 func _populate_troop_list() -> void:
 	if troop_list == null:
@@ -241,7 +241,12 @@ func _update_cart_for_troop(troop_id: StringName, new_qty: int) -> void:
 	var node_data: Dictionary = troop_row_nodes[troop_id]
 	var qty_input: LineEdit = node_data.get("qty_input")
 	if qty_input != null:
-		qty_input.text = str(clamped_qty)
+		var current_text = qty_input.text
+		var new_text_val = str(clamped_qty)
+		if current_text != new_text_val:
+			qty_input.set_block_signals(true)
+			qty_input.text = new_text_val
+			qty_input.set_block_signals(false)
 
 	var troop_type: TroopType = node_data.get("troop_type")
 	if troop_type != null:
@@ -282,7 +287,7 @@ func _validate_and_update_confirm_button(total_cost: int) -> void:
 	if confirm_button == null or current_bus == null:
 		return
 
-	var can_afford: bool = current_bus.money >= total_cost
+	var can_afford: bool = current_bus.pacs >= total_cost
 
 	confirm_button.disabled = not can_afford or recruitment_cart.is_empty()
 
@@ -316,9 +321,9 @@ func _on_confirm_pressed() -> void:
 
 		var cost: int = qty * troop_type.recruitment_cost
 
-		if current_bus.money >= cost:
+		if current_bus.pacs >= cost:
 			if current_bus.charactersheet.add_troop(troop_id, qty):
-				current_bus.money -= cost
+				current_bus.pacs -= cost
 
 				if current_hub != null and current_hub.state != null:
 					current_hub.state.troop_stock[troop_id] = hub_stock - qty

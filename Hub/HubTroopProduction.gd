@@ -24,6 +24,55 @@ func process(dt: float) -> void:
 		_production_timer -= state.troop_production_interval
 		_produce_troops()
 
+	_process_starvation(dt)
+
+func _process_starvation(dt: float) -> void:
+	if economy_manager == null or state == null:
+		return
+		
+	# 1. Calculate Support
+	# Formula: Supported_Pop = Food_Stock / Food_Per_Person
+	
+	# Default from config: 1 serving per 10 pops -> 0.1 per person
+	var servings_per_person: float = 0.1
+	if economy_manager.economy_config != null:
+		servings_per_person = economy_manager.economy_config.servings_per_10_pops / 10.0
+	
+	# Avoid divide by zero
+	if servings_per_person <= 0.0001:
+		servings_per_person = 0.1
+		
+	var supported_pop: float = economy_manager.food_stock_servings / servings_per_person
+	var current_pop: int = _count_total_troops()
+	
+	# 2. Calculate Deficit
+	var starving_pop: float = float(current_pop) - supported_pop
+	
+	if starving_pop <= 0.0:
+		# RECOVERY: Everyone is fine. Reduce the penalty over time.
+		# Symmetrical recovery: If we have surplus, recover at a similar rate.
+		# Rate = Surplus / 3600.0 * dt
+		var surplus: float = abs(starving_pop)
+		var recovery_amount: float = (surplus / 3600.0) * dt
+		
+		# Ensure we recover reasonably fast if surplus is minimal (or at least 1/sec?) 
+		# Or just stick to the symmetrical logic for now.
+		# Let's ensure a minimum recovery to prevent getting stuck in tiny decimals.
+		recovery_amount = max(recovery_amount, 0.1 * dt)
+		
+		state.starvation_cap_penalty = max(0.0, state.starvation_cap_penalty - recovery_amount)
+		return
+		
+	# 3. Calculate Cap Reduction Amount
+	# "Kill" the Population Cap over 3600 seconds based on deficit
+	# Formula: Reduction = Starving_Pop / 3600.0 * dt
+	var reduction_amount: float = (starving_pop / 3600.0) * dt
+	
+	# 4. Apply Reduction to Penalty
+	state.starvation_cap_penalty += reduction_amount
+
+# Removed _kill_troops as we are now reducing cap instead
+
 func _produce_troops() -> void:
 	var troop_db: TroopDatabase = get_node_or_null("/root/TroopDatabase")
 	if troop_db == null:

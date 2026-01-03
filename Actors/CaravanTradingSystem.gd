@@ -37,7 +37,7 @@ func get_effective_max_capacity() -> int:
 	return int(float(base) * (1.0 + bonus))
 
 func home_has_available_preferred_items(home_hub: Hub) -> bool:
-	if home_hub == null or caravan_state.money <= 0:
+	if home_hub == null or caravan_state.pacs <= 0:
 		return false
 	var items: Dictionary = _get_available_preferred_items(home_hub)
 	return items.size() > 0
@@ -59,7 +59,7 @@ func buy_items_at_home(home_hub: Hub) -> int:
 		# Ensure price doesn't go negative or too low
 		price = maxf(price, 0.1)
 		
-		var max_affordable: int = int(floor(float(caravan_state.money) / price))
+		var max_affordable: int = int(floor(float(caravan_state.pacs) / price))
 		var amount: int = mini(available, max_affordable)
 		
 		# Capacity check
@@ -70,7 +70,7 @@ func buy_items_at_home(home_hub: Hub) -> int:
 		if amount > 0:
 			var cost: int = int(ceil(price * float(amount)))
 			if home_hub.buy_from_hub(item_id, amount, caravan_state):
-				caravan_state.money -= cost
+				caravan_state.pacs -= cost
 				caravan_state.add_item(item_id, amount)
 				purchase_prices[item_id] = price
 				total_bought += amount
@@ -123,7 +123,7 @@ func sell_items_at_hub(hub: Hub, force_sell: bool = false) -> void:
 			var revenue: int = int(floor(sell_price * float(amount)))
 			if hub.sell_to_hub(item_id, amount, caravan_state):
 				var profit: int = revenue - int(buy_price * float(amount))
-				caravan_state.money += revenue
+				caravan_state.pacs += revenue
 				caravan_state.profit_this_trip += profit
 				caravan_state.remove_item(item_id, amount)
 				

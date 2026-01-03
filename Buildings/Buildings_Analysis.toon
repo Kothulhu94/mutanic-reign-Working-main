@@ -1,0 +1,53 @@
+@format "TOON 1.4"
+@context "Building Architecture & Economy Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Buildings"
+
+@base_class "Building"
+  script: "Building.gd"
+  role: "Abstract Base"
+  @properties
+    display_name: String
+    footprint: Vector2i (1, 1)
+    pop_cap_bonus: int (0)
+  @methods
+    tick_economy(dt): "Computes resource delta based on static produces/consumes dicts."
+
+@base_class "ProducerBuilding"
+  extends: "Node2D"
+  script: "ProducerBuilding.gd"
+  role: "Generator (Source)"
+  @mechanic "Tick-Based Generation"
+    logic: "Produces `base_amount` of `product_item_id` every tick."
+    scaling: "Output & PopCap *= 1.5 ^ (level - 1)"
+  @upgrade
+    cost: "200 PACs * 2^(level-1)"
+    time: "200 Ticks * 2^(level-1)"
+
+@base_class "ProcessorBuilding"
+  extends: "Node2D"
+  script: "ProcessorBuilding.gd"
+  role: "Refiner (Converter)"
+  @mechanic "Recipe Processing"
+    selection: "`by_id` or `by_tags` (e.g. any 'metal' or specific 'copper_ore')"
+    stratgey: "First Match / Highest Stock / Lowest Price"
+    logic: "Accumulates `work_progress`. When > 1.0, attempts to consume input & produce output."
+    efficiency: "Affected by level, governor bonus, and building efficiency_mult."
+
+@implementations "Concrete Buildings"
+  @producers
+    - "WheatFarm": Generates "Wheat".
+    - "CottonFarm", "CoffeeFarm", "HempFarm", "LichenFarm"
+    - "GemMine", "StoneQuarry", "OreExtractor"
+    - "RabbitHutch", "CrystalHarvester", "FungusVat"
+    
+  @processors
+    - "Bakery": Input "Wheat" -> Output "WheatBread" (Dynamic `_compute_output_id`).
+    - "Smelter", "Foundry", "CrystalForge"
+    - "TextileMill", "MedicalLoom", "Jeweler"
+    - "Apothecary", "StimLab", "PharmaLab"
+    - "Roaster", "FieldKitchen", "NutrientSynthesizer"
+
+@notes
+  - "Architecture": Strong separation between "Source" (Producer) and "Sink/Converter" (Processor).
+  - "Economy": All buildings act as 'tick' listeners, returning inventory deltas to the Hub.
+  - "Visuals": Concrete classes (e.g. Bakery.gd) generally just set textures and specific IDs/Methods, delegating logic to base.
