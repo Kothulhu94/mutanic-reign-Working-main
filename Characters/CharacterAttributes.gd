@@ -12,14 +12,14 @@ signal attribute_leveled(attribute_name: StringName, new_level: int)
 var _attributes: Dictionary = {}
 
 # Base XP requirements
-const BASE_XP_TO_LEVEL: float = 100.0
-const XP_SCALING_PER_LEVEL: float = 1.2
+const BASE_XP_TO_LEVEL: float = 1000.0
+const XP_SCALING_PER_LEVEL: float = 2.25
 
 # Soft cap modifiers
-const SOFT_CAP_1: int = 5   # Levels 1-5: no penalty
-const SOFT_CAP_2: int = 10  # Levels 6-10: 80% XP gain
+const SOFT_CAP_1: int = 5 # Levels 1-5: no penalty
+const SOFT_CAP_2: int = 10 # Levels 6-10: 80% XP gain
 const SOFT_CAP_2_RATE: float = 0.8
-const SOFT_CAP_3_BASE_RATE: float = 0.3  # Levels 11+: 30% * decay
+const SOFT_CAP_3_BASE_RATE: float = 0.3 # Levels 11+: 30% * decay
 const SOFT_CAP_3_DECAY: float = 0.9
 
 # Attribute names

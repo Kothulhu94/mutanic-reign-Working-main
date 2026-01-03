@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="Skill" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="Skill" load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://Characters/Perk.gd" id="1_dggey"]
-[ext_resource type="Resource" path="res://data/Skills/Trading/MarketAnalysis.tres" id="2_wxfxv"]
-[ext_resource type="Resource" path="res://data/Skills/Trading/CaravanLogistics.tres" id="3_3224u"]
-[ext_resource type="Resource" path="res://data/Skills/Trading/NegotiationTactics.tres" id="4_vrve1"]
-[ext_resource type="Resource" path="res://data/Skills/Trading/EstablishedRoutes.tres" id="5_1ffvi"]
-[ext_resource type="Resource" path="res://data/Skills/Trading/MasterMerchant.tres" id="6_5yqot"]
-[ext_resource type="Resource" path="res://data/Skills/Trading/EconomicDominance.tres" id="7_x0bui"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/EfficientPacking.tres" id="9_pack"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/DenseStockpiling.tres" id="10_stock"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/FoodMarketExpertise.tres" id="11_food"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/MaterialsExpertise.tres" id="12_mat"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/MedicineExpertise.tres" id="13_med"]
+[ext_resource type="Resource" path="res://data/Skills/Trading/LuxuryExpertise.tres" id="14_lux"]
 [ext_resource type="Script" path="res://Characters/Skill.gd" id="8_ysstf"]
 
 [resource]
@@ -16,4 +16,4 @@ display_name = "Trading"
 description = "Dominate markets through cunning and determination."
 primary_attribute = &"Guile"
 secondary_attribute = &"Willpower"
-available_perks = Array[ExtResource("1_dggey")]([ExtResource("2_wxfxv"), ExtResource("3_3224u"), ExtResource("4_vrve1"), ExtResource("5_1ffvi"), ExtResource("6_5yqot"), ExtResource("7_x0bui")])
+available_perks = Array[ExtResource("1_dggey")]([ExtResource("9_pack"), ExtResource("10_stock"), ExtResource("11_food"), ExtResource("12_mat"), ExtResource("13_med"), ExtResource("14_lux")])

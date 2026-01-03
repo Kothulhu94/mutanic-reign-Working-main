@@ -1,0 +1,28 @@
+
+@context "Troops Data Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\data\troops"
+
+@resource "TroopType"
+  script: "TroopType.gd"
+  role: "Military Unit Definition"
+  
+  @properties
+    - "Identity": `troop_name`, `description`, `tier` (1-4).
+    - "Archetype": e.g. "Tank", "Striker", "Support".
+    - "Stats": Flat bonuses to `health`, `damage`, `defense`.
+    - "Cost": `recruitment_cost`.
+
+@database "TroopDatabase"
+  script: "TroopDatabase.gd"
+  role: "Singleton Registry"
+  
+  @features
+    - "Registration": Hardcoded calls in `_ready()` to load all 35 `.tres` files.
+    - "Lookups": 
+      - `get_upgrade_target`: Finds next tier unit of exact same archetype.
+      - `get_troops_by_tier`: Filtering.
+      - `get_t1_troop_for_archetype`: Starting points for trees.
+
+@instances
+  - "35 Files": Full spread of 7 archetypes x 4 tiers + fillers.
+  - "Examples": `recruit.tres` (T1), `paladin.tres` (T3 Tank), `wraith_operative.tres` (T4 Striker).

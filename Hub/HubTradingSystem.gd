@@ -101,9 +101,18 @@ func _calculate_item_price(item_id: StringName, current_stock: float, consumptio
 			if bp != null:
 				base_price = float(bp)
 	# Simple supply/demand: more demand or lower stock -> higher price
+	# Fix 1: Always clamp the denominator to avoid Divide by Zero
 	var supply_factor: float = max(1.0, current_stock)
+	
+	# Equilibrium: 10 ticks of consumption.
 	var demand_factor: float = max(1.0, consumption_rate * 10.0)
-	return base_price * (demand_factor / supply_factor)
+	
+	var raw_ratio: float = demand_factor / supply_factor
+	
+	# Fix 2: Clamp the final multiplier to prevent infinity prices (or near-zero)
+	var final_multiplier: float = clampf(raw_ratio, 0.1, 4.0)
+	
+	return base_price * final_multiplier
 
 func _update_item_prices() -> void:
 	if item_db == null:

@@ -10,6 +10,10 @@ const LOAD_RADIUS = 2 # Load 2 chunks out (5x5 grid)
 
 var loaded_chunks: Dictionary = {} # Vector2i -> Sprite2D
 
+# Dictionary of chunks to keep loaded manually (external requests)
+# Vector2i -> bool
+var manual_keep_alive_chunks: Dictionary = {}
+
 var loading_sources: Array[Node2D] = []
 
 func register_source(node: Node2D):
@@ -22,6 +26,7 @@ func _ready():
 	print("MapLoader: Initialized dynamic loader.")
 	
 func _process(_delta):
+	# MapLoader.gd
 	# Collect all "centers" that need chunks loaded
 	var loader_centers: Array[Vector2i] = []
 	
@@ -43,11 +48,16 @@ func _process(_delta):
 	# Determine set of required chunks
 	var required_chunks: Dictionary = {} # Use Dict as Set
 	
+	# Add standard radius chunks
 	for center in loader_centers:
 		for x in range(center.x - LOAD_RADIUS, center.x + LOAD_RADIUS + 1):
 			for y in range(center.y - LOAD_RADIUS, center.y + LOAD_RADIUS + 1):
 				if x >= 0 and x < GRID_SIZE and y >= 0 and y < GRID_SIZE:
 					required_chunks[Vector2i(x, y)] = true
+					
+	# Add manual keep-alive chunks
+	for coord in manual_keep_alive_chunks:
+		required_chunks[coord] = true
 
 	# Load needed
 	for coord in required_chunks:
@@ -62,6 +72,16 @@ func _process(_delta):
 			
 	for coord in to_remove:
 		_unload_chunk(coord)
+
+## Forces a list of chunks to be loaded immediately and kept loaded until cleared.
+## Clears any previously forced chunks.
+func force_load_chunks(coords: Array[Vector2i]) -> void:
+	manual_keep_alive_chunks.clear()
+	for c in coords:
+		manual_keep_alive_chunks[c] = true
+		if not loaded_chunks.has(c):
+			_load_chunk(c)
+	# Note: We don't wait for _process, we load immediately.
 
 func _load_chunk(coord: Vector2i):
 	var path = "res://assets/map_chunks/map_%d_%d.png" % [coord.x, coord.y]

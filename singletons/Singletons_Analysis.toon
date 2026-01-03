@@ -1,0 +1,46 @@
+
+@context "Global Singletons Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\singletons"
+
+@singleton "GameState"
+  script: "GameState.gd"
+  role: "Global Variables & Quick Save"
+  @properties
+    - `fuel` (float)
+    - `rations` (float)
+    - `is_time_running` (bool)
+  @features
+    - "Signals": `fuel_changed`, `rations_changed`.
+    - "Legacy Saving": Contains `save_game`/`load_game` methods that seem partially redundant with `SaveManager`.
+
+@singleton "ProgressionManager"
+  script: "ProgressionManager.gd"
+  role: "Character Registry"
+  @features
+    - "Central Store": Dictionary mapping `character_id` -> `CharacterSheet`.
+    - "Persistence": Methods `save_all_to_dict` and `load_all_from_dict`.
+
+@singleton "SaveManager"
+  script: "SaveManager.gd"
+  role: "Master Serialization Engine"
+  @features
+    - "Scope": Saves Player (Bus), Hubs, and Caravans.
+    - "Format": JSON files stored in `user://saves/`.
+    - "Logic":
+      - `_save_player_data`: Serializes position, stats, inventory.
+      - `_save_caravan_data`: Serializes dynamic caravans, including route state.
+      - `_save_hub_data`: Serializes hub inventory and economy state.
+    - "Restoration": handles reconstructing node trees (e.g. instantiating caravans on load).
+
+@singleton "Timekeeper"
+  script: "Timekeeper.gd"
+  role: "Game Clock"
+  @properties
+    - `TICK_RATE`: 10.0 Hz (10 ticks/sec).
+  @signals
+    - `tick(step)`: The heartbeat of the game.
+    - `paused()` / `resumed()`: Global time control.
+
+@notes
+  - "Redundancy": `GameState.gd` and `SaveManager.gd` both implement save logic. `SaveManager` appears to be the modern, comprehensive implementation. `GameState` seems to be an older artifact or specific to fuel/ration tracking.
+  - "Clock": The 10Hz tick rate is the fundamental frequency for all Economy and Movement logic.

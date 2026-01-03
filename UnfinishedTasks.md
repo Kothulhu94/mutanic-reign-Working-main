@@ -25,7 +25,7 @@ This document outlines identified areas of the codebase that are marked as unfin
 ## 2. Structural Hacks & Workarounds
 
 ### Overworld (`overworld.gd`)
-*   **Bus Scaling Fix**: There is explicit logic to handle the "6x scaling" issue when the Bus is placed inside `MapScenery`.
+*   ~~**Bus Scaling Fix**: There is explicit logic to handle the "6x scaling" issue when the Bus is placed inside `MapScenery`.~~
     *   **Snippet**: `# Fix Scaling: If user put Bus in MapScenery (6x), it will be huge. We must reparent it to Root...`
     *   **Task**: This indicates a scene hierarchy mismatch. Ideally, the Bus should handle its own scaling or the `MapScenery` shouldn't scale its children this way.
 *   **MapManager Injection**: The code hunts for `MapManager` in multiple locations (`MapScenery/MapManager` and root `MapManager`).

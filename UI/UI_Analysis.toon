@@ -1,0 +1,66 @@
+
+@context "UI Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\UI"
+
+@ui_system "CharacterSheetUI"
+  script: "CharacterSheetUI.gd"
+  role: "RPG Status Screen"
+  @features
+    - "Stats": Displays Health, Damage, Defense with tooltips detailing breakdown (Base + Attributes + Troops).
+    - "Inventory": Shows Equipment grid (Head, Body, Legs, etc).
+    - "Skills": Integrates `SkillListUI` for skill trees.
+
+@ui_system "MarketUI"
+  script: "MarketUI.gd"
+  role: "Trading Interface"
+  @features
+    - "Dual List": Player vs Merchant (Hub or Caravan) inventory keys.
+    - "Cart": `loot_cart` abstraction for staged transactions.
+    - "Pricing": Fetches dynamic prices from `HubTradingSystem` or `Caravan`. Rounds UP for buying, DOWN for selling.
+    - "XP": Awards `trading_skill` XP based on transaction volume.
+
+@ui_system "RecruitmentUI"
+  script: "RecruitmentUI.gd"
+  role: "Military Recruitment"
+  @features
+    - "Filtering": Shows troops available in Hub's `troop_stock`.
+    - "Capacity": Respects Player's `max_troop_capacity`.
+    - "Cost": Calculates total based on `TroopType.recruitment_cost`.
+
+@ui_system "EncounterUI"
+  script: "EncounterUI.gd"
+  role: "Combat/Interaction Overlay"
+  @features
+    - "Modes": Combat (Attack/Retreat) or Peaceful (Trade).
+    - "Automation": Runs auto-combat loop via `Timekeeper` ticks (5 ticks/round).
+    - "Loot": Transitions to `LootUI` on victory.
+
+@ui_system "LootUI"
+  script: "LootUI.gd"
+  role: "Post-Combat Looting"
+  @features
+    - "Transfer": Moves items from unique instance inventories (e.g. BeastDen, Caravan).
+    - "Take All": Bulk transfer utility.
+
+@ui_system "HubMenuUI"
+  script: "HubMenuUI.gd"
+  role: "Town Portal"
+  @features
+    - "Routing": Simple button menu to open Market or Recruitment.
+
+@ui_system "PauseMenu"
+  script: "PauseMenu.gd"
+  role: "System Menu"
+  @features
+    - "Persistence": Integrates `SaveLoadUI`.
+    - "Pause": Freezes `Timekeeper` via global timescale.
+
+@ui_system "SkillListUI"
+  script: "SkillListUI.gd"
+  role: "Perk Tree Viewer"
+  @features
+    - "Tree Visualization": Renders perks, unlocking logic, and point spending.
+
+@notes
+  - "Standardization": Most UIs pause the `Timekeeper` on open and resume on close.
+  - "Duck Typing": Heavily relies on target objects having specific properties (`inventory`, `pacs`, `item_db`) rather than strict class inheritance.

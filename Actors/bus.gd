@@ -24,10 +24,6 @@ var _safe_velocity: Vector2 = Vector2.ZERO
 var _repath_timer: float = 0.0
 const REPATH_INTERVAL: float = 0.2
 
-# Trading skill tracking
-var _trade_session_value: float = 0.0 # Total PACs traded in current session
-var _hubs_traded_at: Dictionary = {} # hub_name -> trade_count
-var _last_wealth_check: int = 0 # For EconomicDominance tracking
 
 ## Checks if a specific amount of an item can be added without exceeding limits.
 func can_add_item(item_id: StringName, amount: int) -> bool:
@@ -65,6 +61,7 @@ var _current_path: PackedVector2Array = []
 var _path_index: int = 0
 
 func _ready() -> void:
+	scale = Vector2(4, 4)
 	charactersheet = CharacterSheet.new()
 	charactersheet.initialize_health()
 
@@ -97,24 +94,35 @@ func move_to(target_pos: Vector2):
 		return
 		
 	# Ask the MapManager for a path
-	var new_path = map_manager.get_path_world(global_position, target_pos)
-	if new_path.is_empty():
-		_current_path = []
-		return
-
-	_current_path = new_path
+	# Ask the MapManager for a path
+	_current_path = map_manager.get_path_world(global_position, target_pos)
 	_path_index = 0
-	
-	# Smooth repathing: Skip the first point if we are already ahead of it
+
+	# Smoothing: Fast-forward through path nodes we've already passed
+	# This prevents "backing up" to the center of the current grid cell
 	if _current_path.size() > 1:
-		var p0 = _current_path[0]
-		var p1 = _current_path[1]
-		var vec_path = p1 - p0
-		var vec_me = global_position - p0
-		
-		# If we are effectively "past" p0 in the direction of travel, skip it
-		if vec_me.dot(vec_path) > 0:
-			_path_index = 1
+		# Check first few segments (usually just 1-2 needed)
+		for i in range(min(_current_path.size() - 1, 4)):
+			var a = _current_path[i]
+			var b = _current_path[i + 1]
+			var v_seg = b - a
+			var len2 = v_seg.length_squared()
+			
+			if len2 < 0.001:
+				continue
+				
+			var t = (global_position - a).dot(v_seg) / len2
+			
+			# If t > 0, we have passed 'a' towards 'b'
+			if t > 0.0:
+				_path_index = i + 1
+				# If t <= 1.0, we are strictly between a and b. Target b is correct. Stop.
+				if t <= 1.0:
+					break
+				# If t > 1.0, we passed b as well, so continue loop to check b->c
+			else:
+				# We are "behind" 'a' (or perfectly at it), so we must go to 'a' first.
+				break
 
 func _physics_process(_delta: float) -> void:
 	# Don't move if paused
@@ -156,6 +164,20 @@ func _physics_process(_delta: float) -> void:
 
 	# Move towards point
 	velocity = global_position.direction_to(next_point) * move_speed
+	
+	# Rotation Logic: Look ahead 150 pixels on the path for smooth turning
+	var look_ahead_pos = _get_look_ahead_point(150.0)
+	var target_angle = (look_ahead_pos - global_position).angle()
+	# Lerp rotation for smoothness (adjust weight 5.0 * delta as needed)
+	rotation = lerp_angle(rotation, target_angle, 5.0 * _delta)
+	
+	# Keep health visual upright and floating above
+	if _health_visual != null:
+		_health_visual.rotation = - rotation
+		# Counter-rotate position so it stays "North" on screen
+		# (0, -40) local * 4x parent scale = ~160px global offset
+		_health_visual.position = Vector2(0, -40).rotated(-rotation)
+	
 	move_and_slide()
 
 func _on_timekeeper_paused() -> void:
@@ -180,6 +202,17 @@ func chase_target(target: Node2D) -> void:
 func get_chase_target() -> Node2D:
 	return _chase_target
 
+## Returns the current movement path points
+func get_current_path_points() -> PackedVector2Array:
+	if _current_path.is_empty():
+		return PackedVector2Array()
+	
+	# Only return points from current index onwards
+	if _path_index >= _current_path.size():
+		return PackedVector2Array()
+		
+	return _current_path.slice(_path_index)
+
 ## Award XP to a skill based on transaction value (1 XP per 100 PACs)
 func award_skill_xp(skill_id: StringName, value: float) -> void:
 	if charactersheet == null:
@@ -195,60 +228,49 @@ func award_skill_xp(skill_id: StringName, value: float) -> void:
 	if xp_amount > 0.0:
 		skill.add_xp(xp_amount)
 
-## Track a trade transaction for session-based XP awards
-func track_trade_transaction(hub_name: String, transaction_value: float) -> void:
-	# Accumulate total trading volume for CaravanLogistics
-	_trade_session_value += transaction_value
 
-	# Track which hubs we've traded at for EstablishedRoutes
-	_hubs_traded_at[hub_name] = _hubs_traded_at.get(hub_name, 0) + 1
-
-## Finalize trading session and award session-based XP
-func finalize_trade_session(hub_name: String) -> void:
-	# Award CaravanLogistics XP based on total trading volume this session
-	if _trade_session_value > 0.0:
-		award_skill_xp(&"caravan_logistics", _trade_session_value)
-
-	# Award EstablishedRoutes XP for trading at established hubs (2+ visits)
-	var trade_count: int = _hubs_traded_at.get(hub_name, 0)
-	if trade_count >= 2:
-		# Bonus XP for repeat trading at same hub (building relationships)
-		award_skill_xp(&"established_routes", _trade_session_value * 0.5)
-
-	# Award EconomicDominance XP when wealth increases significantly
-	var current_wealth: int = pacs
-	if current_wealth > _last_wealth_check + 1000:
-		var wealth_gain: float = float(current_wealth - _last_wealth_check)
-		award_skill_xp(&"economic_dominance", wealth_gain)
-		_last_wealth_check = current_wealth
-	elif current_wealth > 1000 and _last_wealth_check == 0:
-		# First time exceeding 1000 PACs
-		award_skill_xp(&"economic_dominance", float(current_wealth))
-		_last_wealth_check = current_wealth
-
-	# Reset session tracking
-	_trade_session_value = 0.0
-
-## Initialize all Trading domain skills for this bus
+## Initialize the central Trading skill
 func _initialize_trading_skills() -> void:
 	if charactersheet == null:
 		push_error("Bus._initialize_trading_skills: CharacterSheet is null")
 		return
 
-	# Add all 7 Trading skills at rank 1
-	var trading_skills: Array[StringName] = [
-		&"market_analysis",
-		&"caravan_logistics",
-		&"negotiation_tactics",
-		&"market_monopoly",
-		&"established_routes",
-		&"master_merchant",
-		&"economic_dominance"
-	]
+	# Add the single Trading skill
+	var skill_res = Skills.get_skill(&"trading")
+	if skill_res:
+		charactersheet.add_skill(skill_res)
+	else:
+		push_warning("Bus: Could not find skill resource for 'Trading'")
 
-	for skill_id: StringName in trading_skills:
-		var skill_res = Skills.get_skill(skill_id)
-		if skill_res:
-			charactersheet.add_skill(skill_res)
-		else:
-			push_warning("Bus: Could not find skill resource for '%s'" % skill_id)
+## Calculates a point a certain distance ahead along the path for smooth steering
+func _get_look_ahead_point(distance: float) -> Vector2:
+	if _current_path.is_empty() or _path_index >= _current_path.size():
+		# If no path, just look ahead in current direction
+		return global_position + Vector2.RIGHT.rotated(rotation) * distance
+
+	var remaining_dist = distance
+	var current_pos = global_position
+	
+	# 1. Check distance to the immediate next waypoint
+	var next_path_pos = _current_path[_path_index]
+	var dist_to_next = current_pos.distance_to(next_path_pos)
+	
+	if dist_to_next > remaining_dist:
+		# Target is on the current segment
+		return current_pos.move_toward(next_path_pos, remaining_dist)
+	
+	# 2. Advance past the immediate waypoint
+	remaining_dist -= dist_to_next
+	current_pos = next_path_pos
+	
+	# 3. Iterate through subsequent waypoints
+	for i in range(_path_index + 1, _current_path.size()):
+		var p = _current_path[i]
+		var d = current_pos.distance_to(p)
+		if d > remaining_dist:
+			return current_pos.move_toward(p, remaining_dist)
+		remaining_dist -= d
+		current_pos = p
+		
+	# 4. If we run out of path, look at the final destination
+	return current_pos

@@ -1,0 +1,74 @@
+
+@context "Comprehensive Project Analysis (Session Consolidation)"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main"
+
+@core_infrastructure "Game Foundation"
+  @singletons
+    - "Timekeeper": Global clock running at 10Hz. Handles Pausing/Resuming.
+    - "SaveManager": Master serialization engine. Saves Player, Hubs, and Caravans to JSON.
+    - "ProgressionManager": Global registry for persistent characters (Governors, Leaders).
+    - "GameState": Legacy/Global state container (Fuel/Rations).
+  @root_scripts
+    - "Combat.gd": Auto-battler logic engine. Handles rolls and casualty calculations (Health % thresholds).
+    - "Battle.gd": Stub for future 3D battle scenes.
+
+@world_systems "Environment & Economy"
+  @hubs "Settlement Architecture"
+    - "Coordinator": `Hub.gd` orchestrates specialized components.
+      - "Economy": `HubEconomyManager` wraps the stateless `HubEconomy` engine.
+      - "Trading": `HubTradingSystem` manages EMA-based dynamic pricing (Supply/Demand).
+      - "Military": `HubTroopProduction` manages T1->Elite upgrades and Starvation penalties.
+    - "Grid": `BuildSlots.gd` manages the 3x3 physical building layout.
+    - "Data": `data/Hubs` contains persistence states (e.g., `Oakmill.tres`).
+
+  @economy "Simulation Engine"
+    - "HubEconomy.gd": Tick-based logic engine.
+      - "Process": Producers -> Processors -> Consumption (Food/Infra/Med/Lux).
+      - "Telemetry": Outputs `consumed` vs `produced` deltas for the Trading System.
+    - "Configuration": `EconomyConfig` defines consumption rates and unit costs.
+
+@entities "Actors & Components"
+  @rpg_system "Character Core"
+    - "CharacterSheet": The data container for Stats, Inventory, and Skills.
+    - "Attributes": Might, Guile, Intellect, Willpower ( XP-based progression).
+    - "Skills": `Skill.gd` & `Perk.gd` define trees (Trading, Melee, etc.).
+    - "Database": `SkillDatabase` and `ProgressionManager` handle lookup and persistence.
+
+  @actors_and_ai
+    - "Caravans":
+      - Logic: `Actors/Caravan.gd` (State Machine).
+      - Data: `data/Caravans` defines Types (FoodTrader, LuxuryTrader) and `CaravanState`.
+    - "Beasts":
+      - Logic: `Beasts/Beast.gd` (Base AI) and `BeastDen.gd` (Spawner).
+      - Data: `data/BeastDens` defines Spawner Types and Biome configurations.
+      - Ecosystem: Organized by Biome (Forest, Grassland, Lake, Mesa).
+    - "Troops":
+      - Data: `data/troops` defines 35 distinct units (7 Archetypes x 4 Tiers).
+      - Database: `TroopDatabase` singleton facilitates upgrades and archetypes.
+
+@content "Game Assets"
+  @items_commodities
+    - "Registry": `ItemDB` handles global item lookups and tagging.
+    - "Categories": Raw Resources, Processed Goods, Luxury/Medical Items.
+  @buildings_catalog
+    - "Base Classes":
+      - `ProducerBuilding`: Generates resources (scales geometrically).
+      - `ProcessorBuilding`: Refines inputs -> outputs (supports recipes).
+    - "Implementations": WheatFarm, Bakery, Smelter, etc.
+  @resources
+    - "GridDataTileSet": 64x64 Debug visualization asset.
+
+@interface "User Experience"
+  @interaction_flow
+    1. "World": `HubMenuUI` opens interactions at settlements.
+    2. "Commerce": `MarketUI` handles trading (Cart logic, Dynamic Pricing, XP Awards).
+    3. "Military": `RecruitmentUI` handles purchasing troops vs Capacity.
+    4. "RPG": `CharacterSheetUI` & `SkillListUI` visualize stats and skill trees.
+    5. "System": `PauseMenu` wraps `InventoryUI` and `SaveLoadUI`.
+  @combat_overlays
+    - "EncounterUI": Auto-combat visualization (Attack/Retreat/Trade).
+    - "LootUI": Post-victory item transfer interface.
+
+@tooling "External"
+  @godot_mcp
+    - "Scripts": Node.js build scripts ensure ESM compatibility (`build.js`) and Asset bridging.

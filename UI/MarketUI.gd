@@ -378,9 +378,9 @@ func _get_item_price(item_id: StringName, merchant: Node, side: String = "") -> 
 	# Apply Trading Skills
 	var player_bonus: float = 0.0
 	if current_bus and current_bus.charactersheet:
-		player_bonus = _calculate_skill_bonus(current_bus.charactersheet)
+		player_bonus = _calculate_skill_bonus(current_bus.charactersheet, item_id, current_merchant)
 
-	var merchant_bonus: float = _get_merchant_skill_bonus()
+	var merchant_bonus: float = _get_merchant_skill_bonus(item_id)
 	var net_modifier: float = player_bonus - merchant_bonus
 
 	if side == "hub": # Buying from hub
@@ -445,7 +445,7 @@ func _on_confirm_pressed() -> void:
 		
 		# --- Award Trading XP ---
 		if current_bus != null and current_bus.charactersheet != null:
-			var trading_skill: Skill = current_bus.charactersheet.get_skill(&"Trading")
+			var trading_skill: Skill = current_bus.charactersheet.get_skill(&"trading")
 			if trading_skill != null:
 				var total_xp: float = 0.0
 				
@@ -528,27 +528,29 @@ func _update_merchant_money(delta: int) -> void:
 	elif current_merchant.is_in_group("caravans") and "caravan_state" in current_merchant:
 		current_merchant.caravan_state.pacs += delta
 
-func _get_merchant_skill_bonus() -> float:
+func _get_merchant_skill_bonus(item_id: StringName = StringName()) -> float:
 	if current_merchant == null:
 		return 0.0
 		
 	if current_merchant.is_in_group("caravans"):
 		# Caravans have a CaravanSkillSystem component
 		if "skill_system" in current_merchant and current_merchant.skill_system != null:
-			return current_merchant.skill_system.price_modifier_bonus
+			# Pass item_db from merchant (Caravan has it as property)
+			var m_db = current_merchant.item_db if "item_db" in current_merchant else null
+			return current_merchant.skill_system.get_price_modifier(item_id, m_db)
 			
 	# Hubs now have a Governor sheet
 	if current_merchant is Hub:
 		if current_merchant.state != null and current_merchant.state.governor_sheet != null:
-			return _calculate_skill_bonus(current_merchant.state.governor_sheet)
+			return _calculate_skill_bonus(current_merchant.state.governor_sheet, item_id, current_merchant)
 
 	return 0.0
 
-func _calculate_skill_bonus(sheet: CharacterSheet) -> float:
+func _calculate_skill_bonus(sheet: CharacterSheet, item_id: StringName = StringName(), merchant_context: Node = null) -> float:
 	if sheet == null:
 		return 0.0
 		
-	var skill = sheet.get_skill(&"Trading")
+	var skill = sheet.get_skill(&"trading")
 	if skill == null:
 		return 0.0
 		
@@ -556,11 +558,61 @@ func _calculate_skill_bonus(sheet: CharacterSheet) -> float:
 	var bonus: float = float(skill.current_level) * 0.005
 	
 	# Perk Bonuses
-	if skill.has_perk(&"economic_dominance"):
-		bonus += 0.1
-	if skill.has_perk(&"market_monopoly"):
-		bonus += 0.1
+	# (Old perks removed: economic_dominance, market_monopoly)
+
+
+	# Food Market Expertise (+5% / +15% / +25% / +45% if item is Food)
+	if item_id != StringName() and merchant_context != null:
+		var rank: int = skill.get_perk_rank(&"food_market_expertise")
+		if rank > 0:
+			# Try to access ItemDB from merchant context
+			var item_db = merchant_context.get("item_db")
+			if item_db and item_db.has_method("has_tag"):
+				if item_db.has_tag(item_id, "food"):
+					if rank >= 1: bonus += 0.05
+					if rank >= 2: bonus += 0.10
+					if rank >= 3: bonus += 0.10
+					if rank >= 4: bonus += 0.20
 		
+	# Materials Expertise
+	if item_id != StringName() and merchant_context != null:
+		var rank: int = skill.get_perk_rank(&"materials_expertise")
+		if rank > 0:
+			var item_db = merchant_context.get("item_db")
+			if item_db and item_db.has_method("has_tag"):
+				# Matches "material" tag (singular based on IronOre.tres)
+				if item_db.has_tag(item_id, "material"):
+					if rank >= 1: bonus += 0.05
+					if rank >= 2: bonus += 0.10
+					if rank >= 3: bonus += 0.10
+					if rank >= 4: bonus += 0.20
+
+	# Medicine Expertise
+	if item_id != StringName() and merchant_context != null:
+		var rank: int = skill.get_perk_rank(&"medicine_expertise")
+		if rank > 0:
+			var item_db = merchant_context.get("item_db")
+			if item_db and item_db.has_method("has_tag"):
+				# Matches "medical" tag (based on HealingSalve.tres)
+				if item_db.has_tag(item_id, "medical"):
+					if rank >= 1: bonus += 0.05
+					if rank >= 2: bonus += 0.10
+					if rank >= 3: bonus += 0.10
+					if rank >= 4: bonus += 0.20
+
+	# Luxury Expertise
+	if item_id != StringName() and merchant_context != null:
+		var rank: int = skill.get_perk_rank(&"luxury_expertise")
+		if rank > 0:
+			var item_db = merchant_context.get("item_db")
+			if item_db and item_db.has_method("has_tag"):
+				# Matches "luxury" tag (based on grep)
+				if item_db.has_tag(item_id, "luxury"):
+					if rank >= 1: bonus += 0.05
+					if rank >= 2: bonus += 0.10
+					if rank >= 3: bonus += 0.10
+					if rank >= 4: bonus += 0.20
+
 	return bonus
 
 func _on_cancel_pressed() -> void:

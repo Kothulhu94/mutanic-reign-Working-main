@@ -17,7 +17,7 @@ func setup(state: CaravanState) -> void:
 	if caravan_state != null and caravan_state.leader_sheet != null:
 		# In new system, skills should already be initialized on the sheet
 		# or initialized here if not present.
-		_ensure_skill_exists(&"Trading")
+		_ensure_skill_exists(&"trading")
 		recalculate_bonuses()
 
 func recalculate_bonuses() -> void:
@@ -25,7 +25,7 @@ func recalculate_bonuses() -> void:
 		return
 		
 	var sheet: CharacterSheet = caravan_state.leader_sheet
-	var trading_skill: Skill = sheet.get_skill(&"Trading")
+	var trading_skill: Skill = sheet.get_skill(&"trading")
 	
 	# Reset
 	price_modifier_bonus = 0.0
@@ -39,24 +39,7 @@ func recalculate_bonuses() -> void:
 	price_modifier_bonus = float(trading_skill.current_level) * 0.005
 	
 	# Perks
-	# CaravanLogistics
-	if trading_skill.has_perk(&"caravan_logistics"):
-		speed_bonus += 0.25
-		capacity_bonus += 0.25
-			
-	# EstablishedRoutes
-	if trading_skill.has_perk(&"established_routes"):
-		capacity_bonus += 0.25
-			
-	# EconomicDominance
-	if trading_skill.has_perk(&"economic_dominance"):
-		speed_bonus += 0.5
-		capacity_bonus += 0.5
-		price_modifier_bonus += 0.1
-		
-	# MarketMonopoly
-	if trading_skill.has_perk(&"market_monopoly"):
-		price_modifier_bonus += 0.1
+	# (Old perks removed: caravan_logistics, established_routes, economic_dominance, market_monopoly)
 
 	# --- Exploration Skill ---
 	var exploration_skill: Skill = sheet.get_skill(&"Exploration")
@@ -72,6 +55,52 @@ func recalculate_bonuses() -> void:
 
 	# Sync to caravan state
 	caravan_state.bonus_capacity_multiplier = 1.0 + capacity_bonus
+
+## Calculates total price modifier for a specific item, including base level bonus and perks.
+func get_price_modifier(item_id: StringName, item_db: ItemDB) -> float:
+	var bonus: float = price_modifier_bonus # Start with base level bonus calculated in recalculate_bonuses
+	
+	if caravan_state == null or caravan_state.leader_sheet == null:
+		return bonus
+		
+	var sheet = caravan_state.leader_sheet
+	var skill = sheet.get_skill(&"trading")
+	if skill == null:
+		return bonus
+
+	# Food Market Expertise
+	if item_db and item_db.has_method("has_tag") and item_db.has_tag(item_id, "food"):
+		var rank = skill.get_perk_rank(&"food_market_expertise")
+		if rank >= 1: bonus += 0.05
+		if rank >= 2: bonus += 0.10
+		if rank >= 3: bonus += 0.10
+		if rank >= 4: bonus += 0.20
+
+	# Materials Expertise
+	if item_db and item_db.has_method("has_tag") and item_db.has_tag(item_id, "material"):
+		var rank = skill.get_perk_rank(&"materials_expertise")
+		if rank >= 1: bonus += 0.05
+		if rank >= 2: bonus += 0.10
+		if rank >= 3: bonus += 0.10
+		if rank >= 4: bonus += 0.20
+
+	# Medicine Expertise
+	if item_db and item_db.has_method("has_tag") and item_db.has_tag(item_id, "medical"):
+		var rank = skill.get_perk_rank(&"medicine_expertise")
+		if rank >= 1: bonus += 0.05
+		if rank >= 2: bonus += 0.10
+		if rank >= 3: bonus += 0.10
+		if rank >= 4: bonus += 0.20
+
+	# Luxury Expertise
+	if item_db and item_db.has_method("has_tag") and item_db.has_tag(item_id, "luxury"):
+		var rank = skill.get_perk_rank(&"luxury_expertise")
+		if rank >= 1: bonus += 0.05
+		if rank >= 2: bonus += 0.10
+		if rank >= 3: bonus += 0.10
+		if rank >= 4: bonus += 0.20
+		
+	return bonus
 
 func award_xp(skill_id: StringName, value: float) -> void:
 	if caravan_state == null or caravan_state.leader_sheet == null:

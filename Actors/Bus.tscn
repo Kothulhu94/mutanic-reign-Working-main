@@ -1,10 +1,10 @@
 [gd_scene load_steps=4 format=3 uid="uid://c14uenn8n47fb"]
 
 [ext_resource type="Script" uid="uid://b0x2f2osl1knp" path="res://Actors/bus.gd" id="1_us70j"]
-[ext_resource type="Texture2D" uid="uid://b5aq34n3fo0al" path="res://icon.svg" id="2_tqmkd"]
+[ext_resource type="Texture2D" path="res://Actors/Bus_Sprite.png" id="2_newsprite"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_f7bok"]
-size = Vector2(10, 4)
+size = Vector2(22, 14)
 
 [node name="CharacterBody2D" type="CharacterBody2D" groups=["player"]]
 script = ExtResource("1_us70j")
@@ -13,5 +13,7 @@ script = ExtResource("1_us70j")
 shape = SubResource("RectangleShape2D_f7bok")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.078125, 0.03125)
-texture = ExtResource("2_tqmkd")
+rotation = 0.7854
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_newsprite")
+

@@ -34,13 +34,34 @@ func get_effective_max_capacity() -> int:
 	var bonus: float = 0.0
 	if skill_system != null:
 		bonus = skill_system.capacity_bonus
-	return int(float(base) * (1.0 + bonus))
+	if skill_system != null:
+		bonus = skill_system.capacity_bonus
+	# Apply CaravanType modifier (previously ignored)
+	# base_capacity is 1000. modifier is e.g. 0.8 or 1.5.
+	var type_mod: float = caravan_state.caravan_type.capacity_modifier
+	return int(float(base) * type_mod * (1.0 + bonus))
 
 func home_has_available_preferred_items(home_hub: Hub) -> bool:
 	if home_hub == null or caravan_state.pacs <= 0:
 		return false
 	var items: Dictionary = _get_available_preferred_items(home_hub)
-	return items.size() > 0
+	
+	# Filter by affordability to prevent infinite loop (Buy -> Fail -> Idle -> Buy)
+	var affordable_count: int = 0
+	for item_id in items.keys():
+		var price: float = home_hub.get_item_price(item_id)
+		# Skill discount
+		var discount: float = 0.0
+		if skill_system:
+			discount = skill_system.get_price_modifier(item_id, item_db)
+		var final_price: float = maxf(price * (1.0 - discount), 0.1)
+		
+		if caravan_state.pacs >= final_price:
+			affordable_count += 1
+			break
+			
+	# print("CaravanTrading: checking items at home. Found: ", items.size(), " Affordable: ", affordable_count)
+	return affordable_count > 0
 
 func buy_items_at_home(home_hub: Hub) -> int:
 	var items_to_buy: Dictionary = _get_available_preferred_items(home_hub)
@@ -53,7 +74,7 @@ func buy_items_at_home(home_hub: Hub) -> int:
 		# Apply buy price reduction (bonus)
 		var price_modifier: float = 0.0
 		if skill_system:
-			price_modifier = skill_system.price_modifier_bonus
+			price_modifier = skill_system.get_price_modifier(item_id, item_db)
 			
 		var price: float = base_price * (1.0 - price_modifier)
 		# Ensure price doesn't go negative or too low
@@ -74,10 +95,14 @@ func buy_items_at_home(home_hub: Hub) -> int:
 				caravan_state.add_item(item_id, amount)
 				purchase_prices[item_id] = price
 				total_bought += amount
+				# print("CaravanTrading: Bought %d of %s for %d" % [amount, item_id, cost])
 				
 				if skill_system:
-					skill_system.award_xp(&"market_analysis", float(cost))
+					skill_system.award_xp(&"trading", float(cost))
+			else:
+				push_warning("CaravanTrading: Hub refused sale of %s" % item_id)
 					
+	# print("CaravanTrading: Total bought: ", total_bought)
 	return total_bought
 
 func evaluate_trade_at_hub(hub: Hub) -> bool:
@@ -85,13 +110,15 @@ func evaluate_trade_at_hub(hub: Hub) -> bool:
 		visited_hubs.append(hub)
 		
 	var has_profit: bool = false
-	var bonus: float = 0.0
-	if skill_system:
-		bonus = skill_system.price_modifier_bonus
-		
 	for item_id: StringName in caravan_state.inventory.keys():
 		var buy_price: float = purchase_prices.get(item_id, 0.0)
 		var base_sell: float = hub.get_item_price(item_id)
+		
+		# Calculate dynamic bonus
+		var bonus: float = 0.0
+		if skill_system:
+			bonus = skill_system.get_price_modifier(item_id, item_db)
+			
 		# Sell price increase
 		var sell_price: float = base_sell * (1.0 + bonus)
 		
@@ -106,16 +133,18 @@ func sell_items_at_hub(hub: Hub, force_sell: bool = false) -> void:
 	for k in caravan_state.inventory.keys():
 		items.append(k)
 		
-	var bonus: float = 0.0
-	if skill_system:
-		bonus = skill_system.price_modifier_bonus
-		
 	for item_id in items:
 		var amount: int = caravan_state.inventory.get(item_id, 0)
 		if amount <= 0: continue
 		
 		var buy_price: float = purchase_prices.get(item_id, 0.0)
 		var base_sell: float = hub.get_item_price(item_id)
+		
+		# Calculate dynamic bonus
+		var bonus: float = 0.0
+		if skill_system:
+			bonus = skill_system.get_price_modifier(item_id, item_db)
+			
 		# Sell price increase
 		var sell_price: float = base_sell * (1.0 + bonus)
 		
@@ -128,12 +157,13 @@ func sell_items_at_hub(hub: Hub, force_sell: bool = false) -> void:
 				caravan_state.remove_item(item_id, amount)
 				
 				if skill_system:
-					skill_system.award_xp(&"market_analysis", float(revenue))
+					skill_system.award_xp(&"trading", float(revenue))
 					if profit > 0:
-						skill_system.award_xp(&"negotiation_tactics", float(profit))
-						skill_system.award_xp(&"master_merchant", float(profit))
+						skill_system.award_xp(&"trading", float(profit))
+						skill_system.award_xp(&"trading", float(profit) * 0.5) # Bonus for profit
 					if amount > 50:
-						skill_system.award_xp(&"market_monopoly", float(revenue))
+						skill_system.award_xp(&"trading", float(revenue) * 0.2) # Bonus for bulk
+
 
 	if hub != null and not visited_hubs.has(hub):
 		visited_hubs.append(hub)

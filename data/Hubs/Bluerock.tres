@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="HubStates" load_steps=5 format=3 uid="uid://pekexvicnwbs"]
+
+[ext_resource type="Script" uid="uid://nw86g3k1v0k5" path="res://data/HubState.gd" id="1_hubscr"]
+[ext_resource type="Script" uid="uid://dbvy0klhldh0m" path="res://data/BuildSlotState.gd" id="2_buildslot"]
+[ext_resource type="PackedScene" uid="uid://c7oy4t1n3vwx0" path="res://Buildings/GemMine.tscn" id="3_gemres"]
+
+[sub_resource type="Resource" id="Resource_gem"]
+script = ExtResource("2_buildslot")
+scene = ExtResource("3_gemres")
+metadata/_custom_type_script = "uid://dbvy0klhldh0m"
+
+[resource]
+script = ExtResource("1_hubscr")
+hub_id = &"bluerock"
+display_name = "Bluerock"
+slots = Array[ExtResource("2_buildslot")]([SubResource("Resource_gem"), null, null, null, null, null, null, null, null])
+metadata/_custom_type_script = "uid://nw86g3k1v0k5"

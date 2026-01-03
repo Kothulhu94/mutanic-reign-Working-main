@@ -109,7 +109,8 @@ func _ready() -> void:
 	# Path: Hub -> Overworld -> MapScenery -> MapManager
 	var map_manager = get_tree().get_root().find_child("MapManager", true, false)
 	if map_manager and map_manager.has_method("register_grid_source"):
-		map_manager.register_grid_source(name, global_position)
+		# Radius 1 with PLUS shape (Center + Up/Down/Left/Right)
+		map_manager.register_grid_source(name, global_position, 1, 1)
 
 func _initialize_components() -> void:
 	# Create components in dependency order

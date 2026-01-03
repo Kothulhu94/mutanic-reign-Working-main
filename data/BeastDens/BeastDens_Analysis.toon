@@ -1,0 +1,18 @@
+
+@context "Beast Dens Data Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\data\BeastDens"
+
+@resource "BeastDenType"
+  script: "BeastDenType.gd"
+  role: "Configuration for BeastDen instances"
+  
+  @properties
+    - "Scenes": `normal_beast_scene` and `emergency_beast_scene`.
+    - "Economics": `spawn_interval_ticks` (Speed) and `max_active_beasts` (Cap).
+    - "Combat": `base_health`, `base_damage`, `base_defense` (Stats for the building itself).
+    - "Mechanic": `emergency_threshold` (e.g. 0.5) triggers burst spawns when health drops.
+    - "Navigation": `obstacle_radius` defines size of the 'hole' cut in the NavMesh.
+
+@instances
+  - "Biomes": Defined by `.tres` files (e.g., `CanopyPantherDen`, `ScrapjackalDen`).
+  - "Balance": Each resource customizes health, spawn rates, and specific beast types for its biome.

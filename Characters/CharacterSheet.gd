@@ -45,13 +45,32 @@ signal inventory_changed(item_id: StringName, new_amount: int)
 # --- Inventory Management ---
 
 func get_max_slots() -> int:
-	# TODO: Add perk modifiers here
-	# e.g. return base_max_slots + get_skill_modifier(&"Logistics", 5)
-	return base_max_slots
+	var bonus: int = 0
+	
+	# Check for Efficient Packing (Trading Tier 1)
+	var trading_skill = get_skill(&"trading")
+	if trading_skill:
+		var rank: int = trading_skill.get_perk_rank(&"efficient_packing")
+		if rank >= 1: bonus += 5
+		if rank >= 2: bonus += 10
+		if rank >= 3: bonus += 10
+		if rank >= 4: bonus += 20
+		
+	return base_max_slots + bonus
 
 func get_max_stack_size() -> int:
-	# TODO: Add perk modifiers here
-	return base_max_stack_size
+	var bonus: int = 0
+	
+	# Check for Dense Stockpiling (Trading Tier 1)
+	var trading_skill = get_skill(&"trading")
+	if trading_skill:
+		var rank: int = trading_skill.get_perk_rank(&"dense_stockpiling")
+		if rank >= 1: bonus += 25
+		if rank >= 2: bonus += 25
+		if rank >= 3: bonus += 25
+		if rank >= 4: bonus += 100
+		
+	return base_max_stack_size + bonus
 
 ## Checks if a specific amount of an item can be added without exceeding limits.
 func can_add_item(item_id: StringName, amount: int) -> bool:

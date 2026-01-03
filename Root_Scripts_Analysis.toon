@@ -1,0 +1,25 @@
+
+@context "Root Directory Scripts Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main"
+
+@script "combat.gd"
+  role: "Combat Logic Engine"
+  @features
+    - "Resolution": Turn-based exchange (`resolve_combat_round`).
+    - "Mechanics":
+      - `Atk_Roll`: 10 + Effective_Damage + rand(0, 49).
+      - `Def_Roll`: 10 + Effective_Defense + rand(0, 49).
+      - `Damage`: max(0, Atk_Roll - Def_Roll).
+    - "Casualties": `_calculate_troop_losses` removes troops based on Health % thresholds:
+      - >67% HP: 10% death chance per unit.
+      - >34% HP: 40% death chance per unit.
+      - <34% HP: 75% death chance per unit.
+
+@script "battle.gd"
+  role: "3D Battle Scene Placeholder"
+  @features
+    - "Stub": Minimal code to print "Battle stub loaded".
+    - "Navigation": Returns to Overworld via `SceneLoader.goto_overworld()` on 'confirm'.
+
+@notes
+  - "Architecture": `combat.gd` appears to be a Singleton or helper script used by `EncounterUI` to process logic, while `battle.gd` is a vestigial or WIP 3D scene controller.

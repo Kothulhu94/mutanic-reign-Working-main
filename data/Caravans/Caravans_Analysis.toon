@@ -1,0 +1,19 @@
+
+@context "Caravans Data Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\data\Caravans"
+
+@resource "CaravanType"
+  script: "CaravanType.gd"
+  role: "Trader Class Definition"
+  
+  @properties
+    - "Identity": `type_id`, `display_name`, `sprite`.
+    - "Stats": `speed_modifier`, `capacity_modifier`, `base_capacity`.
+    - "Trading": `preferred_tags` (e.g., ['food', 'luxury'] for FoodTrader).
+    - "Navigation": `navigation_layers` (Bitmask for map traversal types).
+
+@instances
+  - "FoodTrader": Specializes in food items.
+  - "LuxuryTrader": Specializes in high-value goods.
+  - "MaterialTrader": Hauls raw resources.
+  - "MedicalTrader": Prioritizes medicine and stims.

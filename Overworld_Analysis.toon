@@ -1,4 +1,4 @@
-@format "TOON 1.4"
+
 @context "Analysis of Overworld Architecture"
 @target_files
   - "overworld.tscn"

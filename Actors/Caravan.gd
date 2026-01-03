@@ -9,21 +9,9 @@ class_name Caravan
 ## Emitted when player clicks on this caravan to initiate chase
 signal player_initiated_chase(caravan_actor: Caravan)
 
-# Core state
-var caravan_state: CaravanState = null
-var home_hub: Hub = null
-var current_target_hub: Hub = null
-var _is_paused: bool = false
+# Constants & Enums
+const WAIT_TIMEOUT: float = 60.0
 
-# Components
-var navigator: CaravanNavigator
-var skill_system: CaravanSkillSystem
-var trading_system: CaravanTradingSystem
-
-# Health visual
-var _health_visual: Control
-
-# AI State machine
 enum State {
 	IDLE, # Waiting at home hub
 	BUYING_AT_HOME, # Purchasing goods from home hub
@@ -34,20 +22,22 @@ enum State {
 	SEEKING_NEXT_HUB, # Looking for another profitable hub
 	RETURNING_HOME # Going back to home hub
 }
-var current_state: State = State.IDLE
-var _wait_timer: float = 0.0
-const WAIT_TIMEOUT: float = 60.0
 
-# Configuration (set from EconomyConfig)
+# Exports
 @export var surplus_threshold: float = 200.0 # Items over need to trigger spawn
 @export var home_tax_rate: float = 0.1 # 10% of carried money goes to hub
-
-# Navigation
 @export var movement_speed: float = 100.0
 
-# References
+# Public Variables
+var caravan_state: CaravanState = null
+var home_hub: Hub = null
+var current_target_hub: Hub = null
+var navigator: CaravanNavigator
+var skill_system: CaravanSkillSystem
+var trading_system: CaravanTradingSystem
 var item_db: ItemDB = null
 var all_hubs: Array[Hub] = []
+var current_state: State = State.IDLE
 
 ## Computed property for combat system compatibility
 var charactersheet: CharacterSheet:
@@ -55,6 +45,12 @@ var charactersheet: CharacterSheet:
 		if caravan_state != null:
 			return caravan_state.leader_sheet
 		return null
+
+# Private Variables
+var _is_paused: bool = false
+var _health_visual: Control
+var _wait_timer: float = 0.0
+var _idle_cooldown: float = 0.0
 
 func _ready() -> void:
 	add_to_group("caravans")
@@ -126,9 +122,17 @@ func setup(home: Hub, state: CaravanState, db: ItemDB, hubs: Array[Hub], map_mgr
 	_transition_to(State.BUYING_AT_HOME)
 
 func _process(delta: float) -> void:
+	if _idle_cooldown > 0.0:
+		_idle_cooldown -= delta
+	
 	# Don't process AI if paused
 	if _is_paused:
 		return
+		
+	# Keep health visual upright
+	if _health_visual != null:
+		_health_visual.rotation = - rotation
+		_health_visual.position = Vector2(0, -50).rotated(-rotation)
 
 	match current_state:
 		State.IDLE:
@@ -152,16 +156,23 @@ func _process(delta: float) -> void:
 # State Machine
 # ============================================================
 func _transition_to(new_state: State) -> void:
+	# print("Caravan %s: Transitioning to %s" % [name, State.keys()[new_state]])
 	current_state = new_state
 	match new_state:
 		State.TRAVELING:
 			if current_target_hub:
 				navigator.set_target_position(current_target_hub.global_position)
+			else:
+				push_warning("Caravan %s: Traveling state entered but target is null!" % name)
 		State.RETURNING_HOME:
 			if home_hub:
 				navigator.set_target_position(home_hub.global_position)
 
+
 func _state_idle() -> void:
+	if _idle_cooldown > 0.0:
+		return
+
 	if trading_system.home_has_available_preferred_items(home_hub):
 		_transition_to(State.BUYING_AT_HOME)
 
@@ -171,10 +182,15 @@ func _state_buying_at_home() -> void:
 	if caravan_state.inventory.size() > 0:
 		current_target_hub = trading_system.find_next_destination(home_hub)
 		if current_target_hub != null:
+			# print("Caravan %s: Bought items, heading to %s" % [name, current_target_hub.state.display_name])
 			_transition_to(State.TRAVELING)
 		else:
+			push_warning("Caravan %s: Bought items but found no destination!" % name)
+			_idle_cooldown = 2.0
 			_transition_to(State.IDLE)
 	else:
+		# print("Caravan %s: Could not buy items at home." % name)
+		_idle_cooldown = 2.0
 		_transition_to(State.IDLE)
 
 func _state_traveling(delta: float) -> void:
@@ -233,11 +249,11 @@ func _arrive_at_home() -> void:
 	var trip_profit: int = caravan_state.profit_this_trip
 	var route_value: float = float(caravan_state.pacs + trip_profit)
 	
-	skill_system.award_xp(&"established_routes", route_value)
-	skill_system.award_xp(&"caravan_logistics", route_value)
+	skill_system.award_xp(&"trading", route_value)
+	skill_system.award_xp(&"trading", route_value)
 	
 	if trip_profit > 1000:
-		skill_system.award_xp(&"economic_dominance", float(trip_profit))
+		skill_system.award_xp(&"trading", float(trip_profit))
 		
 	if caravan_state.pacs > 0:
 		var tax: int = int(ceil(float(caravan_state.pacs) * home_tax_rate))

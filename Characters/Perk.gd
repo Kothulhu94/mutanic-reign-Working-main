@@ -18,6 +18,8 @@ class_name Perk
 @export var required_skill_level: int = 0
 ## Cost in Perk Points (default 1).
 @export var cost: int = 1
+## Maximum number of times this perk can be purchased (default 1).
+@export var max_ranks: int = 1
 ## List of Perk IDs that must be unlocked before this one can be purchased.
 @export var prerequisite_perks: Array[StringName] = []
 

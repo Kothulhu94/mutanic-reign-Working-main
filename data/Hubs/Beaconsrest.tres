@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="HubStates" load_steps=5 format=3 uid="uid://r3yi2dpxhv6i"]
+
+[ext_resource type="Script" uid="uid://nw86g3k1v0k5" path="res://data/HubState.gd" id="1_hubscr"]
+[ext_resource type="Script" uid="uid://dbvy0klhldh0m" path="res://data/BuildSlotState.gd" id="2_buildslot"]
+[ext_resource type="PackedScene" uid="uid://cs4uc2kip3txr" path="res://Buildings/AloeGarden.tscn" id="3_aloeres"]
+
+[sub_resource type="Resource" id="Resource_aloe"]
+script = ExtResource("2_buildslot")
+scene = ExtResource("3_aloeres")
+metadata/_custom_type_script = "uid://dbvy0klhldh0m"
+
+[resource]
+script = ExtResource("1_hubscr")
+hub_id = &"beaconsrest"
+display_name = "Beaconsrest"
+slots = Array[ExtResource("2_buildslot")]([SubResource("Resource_aloe"), null, null, null, null, null, null, null, null])
+metadata/_custom_type_script = "uid://nw86g3k1v0k5"

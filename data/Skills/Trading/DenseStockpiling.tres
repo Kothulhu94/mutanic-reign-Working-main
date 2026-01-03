@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="Perk" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Characters/Perk.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+id = &"dense_stockpiling"
+display_name = "Dense Stockpiling"
+description = "Increases item stack limit."
+tier = 1
+required_skill_level = 1
+cost = 1
+max_ranks = 4
+prerequisite_perks = []
+effect_id = &"stack_limit"
+effect_value = 25.0

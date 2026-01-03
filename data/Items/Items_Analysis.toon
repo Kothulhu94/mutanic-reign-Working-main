@@ -1,0 +1,25 @@
+
+@context "Items Data Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\data\Items"
+
+@resource "ItemDef"
+  script: "ItemDef.gd"
+  role: "Item Definition"
+  @properties
+    - base_price: float
+    - weight: float
+    - tags: Array[StringName] (e.g. 'food', 'material')
+    - icon: Texture2D
+
+@database "ItemDB"
+  script: "ItemDB.gd"
+  role: "Global Item Registry"
+  @features
+    - "Auto-Injection": Singleton pattern via `ItemsCatalog.tres` or recursive scan.
+    - "Tag Lookup": Fast retrieval of items by category (e.g., 'all food items').
+    - "Price Lookup": Central authority for base prices.
+
+@instances
+  - "Raw Resources": Wheat, IronOre, Scrap, etc.
+  - "Processed Goods": WheatBread, IronIngot, EnergyLens, etc.
+  - "Luxury/Medical": OrchidPerfume, MediGel, CombatStims.

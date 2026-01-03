@@ -1,0 +1,14 @@
+
+@context "Resources Folder Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\resources"
+
+@resource "GridDataTileSet"
+  path: "res://resources/GridDataTileSet.tres"
+  type: "TileSet"
+  @properties
+    - tile_size: Vector2i(64, 64)
+    - source: Single Atlas Source using `debug_red_square.svg`.
+
+@notes
+  - "Purpose": Likely a placeholder or debug TileSet for grid visualization (NavMesh overlay or Map Editing).
+  - "Content": Contains only a single file.

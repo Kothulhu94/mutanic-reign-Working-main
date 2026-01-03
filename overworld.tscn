@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bn7il32yep7nb"]
+[gd_scene load_steps=16 format=3 uid="uid://bn7il32yep7nb"]
 
 [ext_resource type="Script" uid="uid://c7s2t2bplv8mh" path="res://overworld.gd" id="1_overworld"]
 [ext_resource type="Script" uid="uid://buoe21ml6g3ng" path="res://scripts/MapManager.gd" id="2_mapmgr"]
@@ -12,7 +12,9 @@
 [ext_resource type="PackedScene" uid="uid://bxn5d8qv2mw5k" path="res://UI/MarketUI.tscn" id="263_marketui"]
 [ext_resource type="PackedScene" uid="uid://dr8k3m5y4qsax" path="res://UI/RecruitmentUI.tscn" id="264_recruitmentui"]
 [ext_resource type="PackedScene" uid="uid://cy5k8m3p4xn2r" path="res://Beasts/BeastDen.tscn" id="265_45p7e"]
-[ext_resource type="Resource" path="res://data/BeastDens/ScrapjackalDen.tres" id="266_ak540"]
+[ext_resource type="Resource" uid="uid://dj48c3202x5v1" path="res://data/BeastDens/ScrapjackalDen.tres" id="266_ak540"]
+[ext_resource type="Resource" uid="uid://r3yi2dpxhv6i" path="res://data/Hubs/Beaconsrest.tres" id="267_beaconsrest"]
+[ext_resource type="Resource" uid="uid://pekexvicnwbs" path="res://data/Hubs/Bluerock.tres" id="268_bluerock"]
 
 [node name="Overworld" type="Node2D"]
 script = ExtResource("1_overworld")
@@ -30,8 +32,8 @@ script = ExtResource("2_mapmgr")
 [node name="GridData" type="TileMapLayer" parent="MapScenery/MapManager"]
 tile_set = ExtResource("3_tileset")
 
-[node name="CharacterBody2D" parent="MapScenery" instance=ExtResource("5_4op41")]
-position = Vector2(5677.167, 5440)
+[node name="Bus" parent="." instance=ExtResource("5_4op41")]
+position = Vector2(35000, 36000)
 
 [node name="PathLine" type="Line2D" parent="."]
 z_index = 100
@@ -48,6 +50,20 @@ recruitment_ui = NodePath("../UILayer/RecruitmentUI")
 [node name="Stonegrove" parent="." node_paths=PackedStringArray("hub_menu_ui", "market_ui", "recruitment_ui") instance=ExtResource("258_7r4as")]
 position = Vector2(33516, 31817)
 state = ExtResource("261_pyulv")
+hub_menu_ui = NodePath("../UILayer/HubMenuUI")
+market_ui = NodePath("../UILayer/MarketUI")
+recruitment_ui = NodePath("../UILayer/RecruitmentUI")
+
+[node name="Beaconsrest" parent="." node_paths=PackedStringArray("hub_menu_ui", "market_ui", "recruitment_ui") instance=ExtResource("258_7r4as")]
+position = Vector2(43434, 56456)
+state = ExtResource("267_beaconsrest")
+hub_menu_ui = NodePath("../UILayer/HubMenuUI")
+market_ui = NodePath("../UILayer/MarketUI")
+recruitment_ui = NodePath("../UILayer/RecruitmentUI")
+
+[node name="Bluerock" parent="." node_paths=PackedStringArray("hub_menu_ui", "market_ui", "recruitment_ui") instance=ExtResource("258_7r4as")]
+position = Vector2(28705, 36927)
+state = ExtResource("268_bluerock")
 hub_menu_ui = NodePath("../UILayer/HubMenuUI")
 market_ui = NodePath("../UILayer/MarketUI")
 recruitment_ui = NodePath("../UILayer/RecruitmentUI")

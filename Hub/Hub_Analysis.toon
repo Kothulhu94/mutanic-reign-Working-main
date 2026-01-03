@@ -1,0 +1,51 @@
+
+@context "Hub Architecture & Systems Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Hub"
+
+@engine "Hub (Coordinator)"
+  script: "Hub.gd"
+  role: "Central Coordinator Facade"
+  
+  @components
+    - `HubBuildingManager`: Building placement & PopCap aggregation.
+    - `HubEconomyManager`: Wrapper for logic-engine. Handles Governor Bonuses.
+    - `HubTradingSystem`: Manages dynamic pricing (EMA) and Trade API.
+    - `HubTroopProduction`: Handles spawning, upgrading, and Starvation checks.
+    - `HubUIController`: Signal wiring for Market/Recruitment Menus.
+
+@grid "BuildSlots"
+  script: "BuildSlots.gd"
+  role: "Physical Grid Manager"
+  @properties
+    - "Geometry": 3x3 grid, 300x300 cells. Center is reserved/ignored.
+    - "Logic": Instantiates scene resources or paths from `state.slots`.
+
+@systems
+  @economy
+    script: "HubEconomyManager.gd"
+    role: "Resource Logic Wrapper"
+    - "Dependencies": Injects `HubStates` and `EconomyConfig` into `HubEconomy`.
+    - "Governor": Checks `QualityTools` (Prod) and `IndustrialPlanning` (Eff) skills.
+    - "State Tracking": `food_level`, `infra_level`, etc.
+
+  @trading
+    script: "HubTradingSystem.gd"
+    role: "Exchange Logic"
+    - "Prices": Uses Supply/Demand formula + EMA tracking of `last_consumed`.
+    - "API": `buy_from_hub` / `sell_to_hub` handle inventory transfer + telemetry updates.
+
+  @production
+    script: "HubTroopProduction.gd"
+    role: "Military Logic"
+    - "Upgrades": T1->T2->T3->Elite pipeline.
+    - "Pity": Ensures T1 units spawn if absent.
+    - "Starvation": Calculates `supported_pop` vs `actual_pop`. Applies `starvation_cap_penalty`.
+
+  @ui
+    script: "HubUIController.gd"
+    role: "User Interaction"
+    - "Flow": Detects Bus -> Opens Menu -> Opens Market/Recruit.
+    - "XP": Awards `market_analysis`, `negotiation_tactics`, `market_monopoly` on trade.
+
+@legacy
+  - "_Unusedv0.1Hub.gd": Monolithic predecessor (Reference only).

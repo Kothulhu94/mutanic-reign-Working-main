@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BeastDenType" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BeastDenType" load_steps=3 format=3 uid="uid://dj48c32z2x5v1"]
 
 [ext_resource type="Script" path="uid://c5nadgvmicipm" id="1"]
 [ext_resource type="PackedScene" uid="uid://bs23vrxmfcadt" path="res://Beasts/Grassland/ScrapjackalPack.tscn" id="2"]

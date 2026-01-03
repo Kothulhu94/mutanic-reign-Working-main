@@ -92,6 +92,9 @@ func _ready() -> void:
 	if not existing_bus:
 		existing_bus = get_node_or_null("MapScenery/Bus")
 	if not existing_bus:
+		# In case it's named Generic "CharacterBody2D" in root
+		existing_bus = get_node_or_null("CharacterBody2D")
+	if not existing_bus:
 		# In case it's named Generic "CharacterBody2D" (common when dragging in)
 		existing_bus = get_node_or_null("MapScenery/CharacterBody2D")
 		
@@ -101,10 +104,12 @@ func _ready() -> void:
 		bus = existing_bus as CharacterBody2D
 		_player_bus = bus as Bus
 		
-		# Fix Scaling: If user put Bus in MapScenery (6x), it will be huge.
-		# We must reparent it to Root (1x) while keeping its global position.
+		# Fix Scaling: Checked. Bus is now correctly placed in root (overworld.tscn).
+		# No need to reparent or scale-fix.
 		if bus.get_parent() != self:
-			bus.reparent(self, true) # true = keep_global_transform
+			push_warning("Overworld: Bus found in %s, should be in Root." % bus.get_parent().name)
+			bus.reparent(self, true)
+			# We assume scale is correct IF it was just misplaced, but ideally fix the scene.
 			
 		final_position = bus.global_position
 	else:
@@ -190,13 +195,8 @@ func _ready() -> void:
 	add_child(market_canvas)
 	
 	# Reuse existing MarketUI scene if possible, or load it
-	# Assuming standard path res://UI/MarketUI.tscn (uid://???)
-	# I don't have the UID handy here easily without searching.
-	# Let's search later or assume generic load.
-	# I'll use load("res://UI/MarketUI.tscn") which works if path logic is standard.
-	# Wait, I should use uid if possible.
-	# Found in previous search: MarketUI.tscn exists.
-	var market_ui_scene: PackedScene = load("res://UI/MarketUI.tscn")
+	# Reuse existing MarketUI scene if possible, or load it
+	var market_ui_scene: PackedScene = load("uid://bxn5d8qv2mw5k")
 	if market_ui_scene:
 		_market_ui = market_ui_scene.instantiate() as MarketUI
 		_market_ui.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -254,17 +254,19 @@ func _process(delta: float) -> void:
 		_try_spawn_caravans()
 
 	# Update pathline during chase
+	# Update pathline from bus
 	if _player_bus != null and bus != null:
-		var chase_target: Node2D = _player_bus.get_chase_target()
-		if chase_target != null:
-			if map_manager != null:
-				var world_path: PackedVector2Array = map_manager.get_path_world(bus.global_position, chase_target.global_position)
-				_set_path_line(world_path)
-
+		var current_points = _player_bus.get_current_path_points()
+		if not current_points.is_empty():
+			_set_path_line(current_points)
+		elif _path_world.size() > 0:
+			# Clear if bus has no path
+			_set_path_line(PackedVector2Array())
+		
 func _physics_process(_delta: float) -> void:
-	if bus == null or _path_world.size() == 0 or path_line == null:
+	# Path trimming is now handled by refreshing from bus every frame
+	if bus == null or path_line == null:
 		return
-	_trim_path_as_bus_moves(bus.global_position)
 	_update_line2d_from_world_path()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -284,12 +286,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 			var click_pos: Vector2 = get_global_mouse_position()
 
-			# 1. Visualize Path
-			if map_manager != null:
-				var world_path: PackedVector2Array = map_manager.get_path_world(bus.global_position, click_pos)
-				_set_path_line(world_path)
 
-			# 2. Move Bus
+			# 2. Visualize Path (Handled by _process sync now)
+			# if map_manager != null:
+			# 	var world_path: PackedVector2Array = map_manager.get_path_world(bus.global_position, click_pos)
+			# 	_set_path_line(world_path)
+
+			# 3. Move Bus
 			# The bus script handles the actual movement along the path
 			if _player_bus != null:
 				_player_bus.move_to(click_pos)
@@ -455,7 +458,9 @@ func _spawn_caravan(home_hub: Hub, caravan_type: CaravanType, all_hubs: Array[Hu
 	caravan.name = "%s_%d" % [type_id_str, current_count]
 	var leader_sheet: CharacterSheet = CharacterSheet.new()
 	# Create caravan state
-	var starting_money: int = caravan_type.get_starting_money(home_hub.state.base_population_cap)
+	var calculated_money: int = caravan_type.get_starting_money(home_hub.state.base_population_cap)
+	# Enforce minimum starting capital (2000 pacs) to prevent "broke" caravans that can't trade
+	var starting_money: int = maxi(2000, calculated_money)
 	var state: CaravanState = CaravanState.new(home_hub.state.hub_id, StringName(), starting_money, caravan_type, leader_sheet)
 	
 	# Set surplus threshold from config

@@ -1,20 +1,9 @@
-[gd_resource type="Resource" script_class="SkillDatabase" load_steps=15 format=3]
+[gd_resource type="Resource" script_class="SkillDatabase" load_steps=4 format=3 uid="uid://bu4aexm23v5uw"]
 
-[ext_resource type="Script" path="res://Characters/SkillDatabase.gd" id="1_mf21k"]
-[ext_resource type="Script" path="res://Characters/Skill.gd" id="2_3tj6r"]
+[ext_resource type="Script" uid="uid://cg7v4inyg6hlh" path="res://Characters/SkillDatabase.gd" id="1_mf21k"]
+[ext_resource type="Script" uid="uid://bcwtul4idcrmu" path="res://Characters/Skill.gd" id="2_3tj6r"]
 [ext_resource type="Resource" path="res://data/Skills/Trading.tres" id="3_trw5b"]
-[ext_resource type="Resource" path="res://data/Skills/Melee/Melee.tres" id="4_vkp3x"]
-[ext_resource type="Resource" path="res://data/Skills/Ranged/Ranged.tres" id="5_6f8gw"]
-[ext_resource type="Resource" path="res://data/Skills/ArtifactWeapons/ArtifactWeapons.tres" id="6_mia1v"]
-[ext_resource type="Resource" path="res://data/Skills/Exploration/Exploration.tres" id="7_ek64k"]
-[ext_resource type="Resource" path="res://data/Skills/Craftsmanship/Craftsmanship.tres" id="8_qit2n"]
-[ext_resource type="Resource" path="res://data/Skills/Governance/Governance.tres" id="9_acs6d"]
-[ext_resource type="Resource" path="res://data/Skills/Leadership/Leadership.tres" id="10_igdpp"]
-[ext_resource type="Resource" path="res://data/Skills/Diplomacy/Diplomacy.tres" id="11_5qiyg"]
-[ext_resource type="Resource" path="res://data/Skills/Criminality/Criminality.tres" id="12_qxdr8"]
-[ext_resource type="Resource" path="res://data/Skills/Espionage/Espionage.tres" id="13_l320w"]
-[ext_resource type="Resource" path="res://data/Skills/Religion/Religion.tres" id="14_gxfr0"]
 
 [resource]
 script = ExtResource("1_mf21k")
-skills = Array[ExtResource("2_3tj6r")]([ExtResource("3_trw5b"), ExtResource("4_vkp3x"), ExtResource("5_6f8gw"), ExtResource("6_mia1v"), ExtResource("7_ek64k"), ExtResource("8_qit2n"), ExtResource("9_acs6d"), ExtResource("10_igdpp"), ExtResource("11_5qiyg"), ExtResource("12_qxdr8"), ExtResource("13_l320w"), ExtResource("14_gxfr0")])
+skills = Array[ExtResource("2_3tj6r")]([ExtResource("3_trw5b")])

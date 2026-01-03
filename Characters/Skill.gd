@@ -43,7 +43,7 @@ signal perk_unlocked(perk_id: StringName)
 var current_level: int = 1
 var current_xp: float = 0.0
 var perk_points: int = 0
-var unlocked_perk_ids: Array[StringName] = []
+var perk_ranks: Dictionary = {} # perk_id (StringName) -> rank (int)
 
 # Cache for quick lookups
 var _perk_map: Dictionary = {}
@@ -82,29 +82,37 @@ func add_xp(amount: float) -> void:
 	if leveled:
 		leveled_up.emit(current_level)
 
-## Returns true if the character has the specific perk unlocked.
+## Returns true if the character has the specific perk unlocked (rank >= 1).
 func has_perk(perk_id: StringName) -> bool:
-	return perk_id in unlocked_perk_ids
+	return perk_ranks.get(perk_id, 0) > 0
+
+## Returns the current rank of a perk.
+func get_perk_rank(perk_id: StringName) -> int:
+	return perk_ranks.get(perk_id, 0)
 
 ## Attempts to purchase a perk. Returns true if successful.
 func buy_perk(perk_id: StringName) -> bool:
-	if has_perk(perk_id):
-		return false # Already owned
-		
+	var current_rank: int = get_perk_rank(perk_id)
+	
 	var perk = _get_perk_resource(perk_id)
 	if not perk:
 		push_warning("Skill: Attempted to buy unknown perk '%s' in skill '%s'" % [perk_id, id])
 		return false
 		
-	# Check costs and requirements
+	# Check if we are at max rank
+	if current_rank >= perk.max_ranks:
+		return false
+		
+	# Check costs
 	if perk_points < perk.cost:
 		return false
 		
+	# Check level requirements
 	if current_level < perk.required_skill_level:
 		return false
 	
-	# Tier Gating Logic
-	var owned_count = unlocked_perk_ids.size()
+	# Tier Gating Logic (uses total unique perks owned)
+	var owned_count = perk_ranks.size()
 	if perk.tier == 2:
 		if owned_count < 5:
 			return false
@@ -118,7 +126,7 @@ func buy_perk(perk_id: StringName) -> bool:
 			
 	# Transaction
 	perk_points -= perk.cost
-	unlocked_perk_ids.append(perk_id)
+	perk_ranks[perk_id] = current_rank + 1
 	perk_unlocked.emit(perk_id)
 	return true
 
@@ -128,7 +136,7 @@ func get_xp_for_next_level() -> float:
 		return 999999.0
 	
 	# Custom Curve for Trading
-	if id == &"Trading":
+	if id == &"trading":
 		# Level 0 -> 1: 500 XP (Start)
 		if current_level == 0:
 			return 500.0
@@ -176,7 +184,7 @@ func to_dict() -> Dictionary:
 		"current_level": current_level,
 		"current_xp": current_xp,
 		"perk_points": perk_points,
-		"unlocked_perk_ids": unlocked_perk_ids
+		"perk_ranks": perk_ranks
 	}
 
 func from_dict(data: Dictionary) -> void:
@@ -188,9 +196,18 @@ func from_dict(data: Dictionary) -> void:
 	current_xp = float(data.get("current_xp", 0.0))
 	perk_points = int(data.get("perk_points", 0))
 	
-	var loaded_perks = data.get("unlocked_perk_ids", [])
-	unlocked_perk_ids.clear()
-	for p in loaded_perks:
-		unlocked_perk_ids.append(StringName(p))
+	perk_ranks.clear()
+	
+	# Handle new format (dictionary)
+	if data.has("perk_ranks"):
+		var ranks = data["perk_ranks"]
+		for p_id in ranks:
+			perk_ranks[StringName(p_id)] = int(ranks[p_id])
+	
+	# Handle legacy format (array of IDs) - backward compatibility
+	elif data.has("unlocked_perk_ids"):
+		var unlocked = data["unlocked_perk_ids"]
+		for p_id in unlocked:
+			perk_ranks[StringName(p_id)] = 1
 	
 	setup() # Refresh map after load

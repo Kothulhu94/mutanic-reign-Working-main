@@ -1,0 +1,21 @@
+
+@context "Hubs Data Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\data\Hubs"
+
+@resource "HubStates"
+  script: "HubState.gd"
+  role: "Settlement Persistence Container"
+  
+  @properties
+    - "Identity": `hub_id`, `display_name`, `governor_id`.
+    - "Economy": 
+      - `pacs` (Wallet).
+      - `inventory` (Dict: StringName -> int/float).
+      - `trade_prices` (Dynamic pricing memory).
+    - "Population": `base_population_cap` and `starvation_cap_penalty`.
+    - "Military": `troop_stock` and `troop_production_settings`.
+    - "Infrastructure": `slots` (Array of 9 `BuildSlotState` objects).
+
+@instances
+  - "Oakmill.tres": Starting/Main hub configuration.
+  - "Stonegrove.tres": Secondary settlement.
