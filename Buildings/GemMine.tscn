@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://c7oy4t1n3vwx0"]
+[gd_scene load_steps=3 format=3 uid="uid://c7oy4t1n3vwx0"]
 
-[ext_resource type="Script" path="uid://fo6na7sg5u3j" id="1_gemin"]
+[ext_resource type="Script" path="res://Buildings/GemMine.gd" id="1_gemin"]
+[ext_resource type="Texture2D" path="res://art_src/GemMine_v2.png" id="2_texture"]
 
 [node name="GemMine" type="Node2D"]
 script = ExtResource("1_gemin")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_texture")

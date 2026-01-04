@@ -1,0 +1,33 @@
+@reference "Assets Directory Summary"
+@format "TOON 1.4"
+@context "Analysis of d:\GodoTDev\mutanic-reign-Working-main\assets"
+
+@group "Root Assets"
+  @path "d:\GodoTDev\mutanic-reign-Working-main\assets"
+  @files
+    TheMap.png [Size: 43495224]
+    TheMap.png.import [Size: 742]
+    analyze_map.py [Size: 1134]
+    analyze_missed_terrain.py [Size: 3082]
+    debug_red_square.svg [Size: 122]
+    debug_red_square.svg.import [Size: 1056]
+    extract_palette.py [Size: 2943]
+    find_biomes.py [Size: 1464]
+    slicer.py [Size: 1495]
+    terrain_baker.py [Size: 6856]
+    terrain_config.json [Size: 4055]
+  @subfolders
+    @folder "map_chunks"
+      @desc "Contains sliced map chunks (images and imports)."
+      @count 512
+      @pattern "map_{x}_{y}.png"
+    @folder "map_data"
+      @desc "Contains data map chunks (images and imports)."
+      @count 512
+      @pattern "data_{x}_{y}.png"
+    @folder "map_debug"
+      @desc "Contains debug full map images."
+      @count 2
+      @files
+        FULL_DEBUG_MAP.png [Size: 75900451]
+        FULL_DEBUG_MAP.png.import [Size: 962]

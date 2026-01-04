@@ -55,14 +55,14 @@ market_ui = NodePath("../UILayer/MarketUI")
 recruitment_ui = NodePath("../UILayer/RecruitmentUI")
 
 [node name="Beaconsrest" parent="." node_paths=PackedStringArray("hub_menu_ui", "market_ui", "recruitment_ui") instance=ExtResource("258_7r4as")]
-position = Vector2(43434, 56456)
+position = Vector2(30506, 37000)
 state = ExtResource("267_beaconsrest")
 hub_menu_ui = NodePath("../UILayer/HubMenuUI")
 market_ui = NodePath("../UILayer/MarketUI")
 recruitment_ui = NodePath("../UILayer/RecruitmentUI")
 
 [node name="Bluerock" parent="." node_paths=PackedStringArray("hub_menu_ui", "market_ui", "recruitment_ui") instance=ExtResource("258_7r4as")]
-position = Vector2(28705, 36927)
+position = Vector2(49697, 60479)
 state = ExtResource("268_bluerock")
 hub_menu_ui = NodePath("../UILayer/HubMenuUI")
 market_ui = NodePath("../UILayer/MarketUI")

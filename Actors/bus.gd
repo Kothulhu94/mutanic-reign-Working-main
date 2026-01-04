@@ -20,7 +20,6 @@ var pacs: int = 1000
 var _health_visual: Control
 var _chase_target: Node2D = null
 const ENCOUNTER_DISTANCE: float = 60.0
-var _safe_velocity: Vector2 = Vector2.ZERO
 var _repath_timer: float = 0.0
 const REPATH_INTERVAL: float = 0.2
 
@@ -53,9 +52,6 @@ func remove_item(item_id: StringName, amount: int) -> bool:
 		return result
 	return false
 
-###########################################################
-# Pathfinding Migration
-###########################################################
 @export var map_manager: MapManager
 var _current_path: PackedVector2Array = []
 var _path_index: int = 0
@@ -94,14 +90,11 @@ func move_to(target_pos: Vector2):
 		return
 		
 	# Ask the MapManager for a path
-	# Ask the MapManager for a path
 	_current_path = map_manager.get_path_world(global_position, target_pos)
 	_path_index = 0
 
 	# Smoothing: Fast-forward through path nodes we've already passed
-	# This prevents "backing up" to the center of the current grid cell
 	if _current_path.size() > 1:
-		# Check first few segments (usually just 1-2 needed)
 		for i in range(min(_current_path.size() - 1, 4)):
 			var a = _current_path[i]
 			var b = _current_path[i + 1]
@@ -113,19 +106,14 @@ func move_to(target_pos: Vector2):
 				
 			var t = (global_position - a).dot(v_seg) / len2
 			
-			# If t > 0, we have passed 'a' towards 'b'
 			if t > 0.0:
 				_path_index = i + 1
-				# If t <= 1.0, we are strictly between a and b. Target b is correct. Stop.
 				if t <= 1.0:
 					break
-				# If t > 1.0, we passed b as well, so continue loop to check b->c
 			else:
-				# We are "behind" 'a' (or perfectly at it), so we must go to 'a' first.
 				break
 
 func _physics_process(_delta: float) -> void:
-	# Don't move if paused
 	if _is_paused:
 		return
 
@@ -168,14 +156,11 @@ func _physics_process(_delta: float) -> void:
 	# Rotation Logic: Look ahead 150 pixels on the path for smooth turning
 	var look_ahead_pos = _get_look_ahead_point(150.0)
 	var target_angle = (look_ahead_pos - global_position).angle()
-	# Lerp rotation for smoothness (adjust weight 5.0 * delta as needed)
 	rotation = lerp_angle(rotation, target_angle, 5.0 * _delta)
 	
 	# Keep health visual upright and floating above
 	if _health_visual != null:
 		_health_visual.rotation = - rotation
-		# Counter-rotate position so it stays "North" on screen
-		# (0, -40) local * 4x parent scale = ~160px global offset
 		_health_visual.position = Vector2(0, -40).rotated(-rotation)
 	
 	move_and_slide()
@@ -189,9 +174,6 @@ func _on_timekeeper_resumed() -> void:
 func _on_health_changed(new_health: int, max_health: int) -> void:
 	if _health_visual != null:
 		_health_visual.update_health(new_health, max_health)
-
-func _on_velocity_computed(safe_velocity: Vector2) -> void:
-	_safe_velocity = safe_velocity
 
 ## Initiates chase of a target node
 func chase_target(target: Node2D) -> void:
@@ -207,7 +189,6 @@ func get_current_path_points() -> PackedVector2Array:
 	if _current_path.is_empty():
 		return PackedVector2Array()
 	
-	# Only return points from current index onwards
 	if _path_index >= _current_path.size():
 		return PackedVector2Array()
 		
@@ -218,12 +199,10 @@ func award_skill_xp(skill_id: StringName, value: float) -> void:
 	if charactersheet == null:
 		return
 
-	# Load the active skill from the sheet
 	var skill: Skill = charactersheet.get_skill(skill_id)
 	if skill == null:
 		return
 
-	# Calculate XP: 1 XP per 100 PACs
 	var xp_amount: float = value / 100.0
 	if xp_amount > 0.0:
 		skill.add_xp(xp_amount)
@@ -235,7 +214,6 @@ func _initialize_trading_skills() -> void:
 		push_error("Bus._initialize_trading_skills: CharacterSheet is null")
 		return
 
-	# Add the single Trading skill
 	var skill_res = Skills.get_skill(&"trading")
 	if skill_res:
 		charactersheet.add_skill(skill_res)
@@ -245,25 +223,20 @@ func _initialize_trading_skills() -> void:
 ## Calculates a point a certain distance ahead along the path for smooth steering
 func _get_look_ahead_point(distance: float) -> Vector2:
 	if _current_path.is_empty() or _path_index >= _current_path.size():
-		# If no path, just look ahead in current direction
 		return global_position + Vector2.RIGHT.rotated(rotation) * distance
 
 	var remaining_dist = distance
 	var current_pos = global_position
 	
-	# 1. Check distance to the immediate next waypoint
 	var next_path_pos = _current_path[_path_index]
 	var dist_to_next = current_pos.distance_to(next_path_pos)
 	
 	if dist_to_next > remaining_dist:
-		# Target is on the current segment
 		return current_pos.move_toward(next_path_pos, remaining_dist)
 	
-	# 2. Advance past the immediate waypoint
 	remaining_dist -= dist_to_next
 	current_pos = next_path_pos
 	
-	# 3. Iterate through subsequent waypoints
 	for i in range(_path_index + 1, _current_path.size()):
 		var p = _current_path[i]
 		var d = current_pos.distance_to(p)
@@ -272,5 +245,4 @@ func _get_look_ahead_point(distance: float) -> Vector2:
 		remaining_dist -= d
 		current_pos = p
 		
-	# 4. If we run out of path, look at the final destination
 	return current_pos

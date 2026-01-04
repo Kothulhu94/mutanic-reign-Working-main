@@ -2,97 +2,161 @@
     "terrain_types": {
         "SAND": {
             "id": 1,
-            "color": [211, 125, 40],
+            "color": [
+                211,
+                125,
+                40
+            ],
             "tolerance": 45,
             "description": "Desert/Beach - Slower movement (1.25x)"
         },
         "SAND_DUNE": {
             "id": 1,
-            "color": [215, 127, 40],
+            "color": [
+                215,
+                127,
+                40
+            ],
             "tolerance": 45,
             "description": "Sand Variation"
         },
         "SNOW": {
             "id": 2,
-            "color": [243, 246, 251],
+            "color": [
+                243,
+                246,
+                251
+            ],
             "tolerance": 35,
             "description": "Deep Snow - Very slow movement (1.5x)"
         },
         "SNOW_SHADOW": {
             "id": 2,
-            "color": [220, 225, 231],
+            "color": [
+                220,
+                225,
+                231
+            ],
             "tolerance": 30,
             "description": "Snow in shadow/transition"
         },
         "SNOW_ICE": {
             "id": 2,
-            "color": [216, 221, 227],
+            "color": [
+                216,
+                221,
+                227
+            ],
             "tolerance": 30,
             "description": "Ice/Dark Snow"
         },
         "WATER": {
             "id": 3,
-            "color": [30, 49, 63],
+            "color": [
+                30,
+                49,
+                63
+            ],
             "tolerance": 35,
             "description": "Water/Void - Impassable (Solid)"
         },
         "WATER_DEEP": {
             "id": 3,
-            "color": [0, 0, 0],
+            "color": [
+                0,
+                0,
+                0
+            ],
             "tolerance": 20,
             "description": "Deep Ocean/Void (Black)"
         },
         "SNOW_DARK": {
             "id": 2,
-            "color": [200, 203, 208],
+            "color": [
+                200,
+                203,
+                208
+            ],
             "tolerance": 35,
             "description": "Dark Gray Snow/Ice"
         },
         "WATER_ROCKS": {
             "id": 3,
-            "color": [30, 29, 27],
+            "color": [
+                30,
+                29,
+                27
+            ],
             "tolerance": 20,
             "description": "Dark Rocks/Abyss"
         },
         "SNOW_DARKER": {
             "id": 2,
-            "color": [178, 181, 186],
+            "color": [
+                178,
+                181,
+                186
+            ],
             "tolerance": 35,
             "description": "Very Dark Snow/Ice"
         },
         "SNOW_DIRTY": {
             "id": 2,
-            "color": [145, 146, 148],
+            "color": [
+                145,
+                146,
+                148
+            ],
             "tolerance": 30,
             "description": "Dirty/Rocky Snow"
         },
         "SNOW_GREY": {
             "id": 2,
-            "color": [128, 128, 128],
+            "color": [
+                128,
+                128,
+                128
+            ],
             "tolerance": 25,
             "description": "Gray Snow/Rocks"
         },
         "WATER_ABYSS": {
             "id": 3,
-            "color": [20, 17, 12],
+            "color": [
+                20,
+                17,
+                12
+            ],
             "tolerance": 20,
             "description": "Deepest Abyss"
         },
         "WATER_CLIFFS": {
             "id": 3,
-            "color": [63, 63, 63],
+            "color": [
+                63,
+                63,
+                63
+            ],
             "tolerance": 25,
             "description": "Dark Cliff Walls (Impassable)"
         },
         "WATER_MUD": {
             "id": 3,
-            "color": [58, 50, 40],
+            "color": [
+                58,
+                50,
+                40
+            ],
             "tolerance": 20,
             "description": "Dark Mud/Water"
         },
         "WATER_ROCKS_VAR": {
             "id": 3,
-            "color": [85, 85, 85],
+            "color": [
+                85,
+                85,
+                85
+            ],
             "tolerance": 20,
             "description": "Lighter Rocks (Impassable)"
         }
@@ -100,5 +164,5 @@
     "input_dir": "map_chunks",
     "output_dir": "map_data",
     "chunk_size": 1024,
-    "target_size": 512
+    "target_size": 256
 }

@@ -13,9 +13,11 @@ This document outlines identified areas of the codebase that are marked as unfin
     *   **Task**: Implement a robust Skill Database lookup to fetch the base resource using the ID before applying the saved data.
 
 ### Map & Navigation (`scripts/MapManager.gd`, `Actors/CaravanNavigator.gd`)
-*   **Dynamic Grid Updates**: `MapManager.gd` contains a `pass` block in `_process` for updating registered grids other than the camera.
-    *   **Snippet**: `# (For static hubs, we rely on them calling register, but if they moved we'd need loop.)`
-    *   **Task**: Verify if moving Hubs/Grids are a requirements. If so, implement the update loop.
+*   ~~**Dynamic Grid Updates**: `MapManager.gd` contains a `pass` block in `_process` for updating registered grids other than the camera.~~
+    *   **Status**: Cancelled. User confirmed Hubs are static cities and do not move.
+    *   **New Task**: Implement `unregister_grid_source` in `MapManager` to handle Hub destruction (cleanup of `active_grids`).
+*   **Hub Founding Logic**: Logic for dynamically founding new Hubs is missing.
+    *   **Task**: Ensure new Hub instances register themselves with `MapManager` (currently handled in `_ready`, which is good) and verify placement logic.
 *   **Abstract Navigation Fallback**: `CaravanNavigator.gd` assumes that if a grid path fails but we are in-bounds, we should fall back to Abstract (linear) movement.
     *   **Snippet**: `# If path failed but we are in bounds... Fallback to abstract?`
     *   **Task**: This logic might cause caravans to walk through walls if the pathfinding fails for valid reasons (unreachable). Needs robustness testing.

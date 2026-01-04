@@ -296,6 +296,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			# The bus script handles the actual movement along the path
 			if _player_bus != null:
 				_player_bus.move_to(click_pos)
+				# Snap camera back to bus on new move command
+				if cam != null and cam.has_method("snap_to_player"):
+					cam.snap_to_player()
 
 func _set_path_line(points_world: PackedVector2Array) -> void:
 	# Store the world-space path; Line2D will be updated each physics tick

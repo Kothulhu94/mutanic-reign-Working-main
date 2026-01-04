@@ -9,4 +9,5 @@ func _ready() -> void:
 	var spr := $Sprite2D as Sprite2D
 	if spr and aloe_texture:
 		spr.texture = aloe_texture
+	print("AloeGarden: Ready at ", global_position)
 	super._ready()

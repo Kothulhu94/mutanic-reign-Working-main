@@ -13,7 +13,7 @@
     - "Battle.gd": Stub for future 3D battle scenes.
 
 @world_systems "Environment & Economy"
-  @hubs "Settlement Architecture"
+  @hubs "Settlement Architecture (Static)"
     - "Coordinator": `Hub.gd` orchestrates specialized components.
       - "Economy": `HubEconomyManager` wraps the stateless `HubEconomy` engine.
       - "Trading": `HubTradingSystem` manages EMA-based dynamic pricing (Supply/Demand).
