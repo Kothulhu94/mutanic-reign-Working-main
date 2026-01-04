@@ -10,4 +10,5 @@ display_name = "Traveling Doctor"
 sprite = ExtResource("2_kwqjx")
 navigation_layers = 3
 preferred_tags = Array[StringName]([&"medical"])
+starting_money_multiplier = 500.0
 metadata/_custom_type_script = "uid://baj5eti6c1qc7"

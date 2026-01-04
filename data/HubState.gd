@@ -33,3 +33,66 @@ class_name HubStates
 func ensure_slots(lens: int = 9) -> void:
 	while slots.size() < lens:
 		slots.append(null)
+
+# --- Serialization ---
+
+func to_dict() -> Dictionary:
+	var data: Dictionary = {}
+	data["hub_id"] = str(hub_id)
+	data["display_name"] = display_name
+	data["governor_id"] = str(governor_id)
+	data["pacs"] = pacs
+	data["inventory"] = inventory.duplicate(true)
+	data["troop_stock"] = troop_stock.duplicate(true)
+	data["base_population_cap"] = base_population_cap
+	data["starvation_cap_penalty"] = starvation_cap_penalty
+	data["trade_prices"] = trade_prices.duplicate(true)
+	data["troop_production_interval"] = troop_production_interval
+	data["archetype_spawn_pity"] = archetype_spawn_pity.duplicate()
+
+	if governor_sheet:
+		data["governor_sheet"] = governor_sheet.to_dict()
+		
+	var slots_data: Array = []
+	for slot in slots:
+		if slot:
+			slots_data.append(slot.to_dict())
+		else:
+			slots_data.append(null)
+	data["slots"] = slots_data
+	
+	return data
+
+func from_dict(data: Dictionary) -> void:
+	hub_id = StringName(data.get("hub_id", ""))
+	display_name = data.get("display_name", "Settlement")
+	governor_id = StringName(data.get("governor_id", ""))
+	pacs = data.get("pacs", 0)
+	inventory = data.get("inventory", {}).duplicate(true)
+	troop_stock = data.get("troop_stock", {}).duplicate(true)
+	base_population_cap = data.get("base_population_cap", 100)
+	starvation_cap_penalty = data.get("starvation_cap_penalty", 0.0)
+	trade_prices = data.get("trade_prices", {}).duplicate(true)
+	troop_production_interval = data.get("troop_production_interval", 300.0)
+	# Cast to Array[String] manually loop if needed, but implicit cast might work or simple assign
+	var pity_data = data.get("archetype_spawn_pity", [])
+	archetype_spawn_pity.clear()
+	for p in pity_data:
+		archetype_spawn_pity.append(str(p))
+	
+	var gov_data = data.get("governor_sheet")
+	if gov_data and gov_data is Dictionary:
+		if not governor_sheet: governor_sheet = CharacterSheet.new()
+		governor_sheet.from_dict(gov_data)
+		
+	var slots_data = data.get("slots", [])
+	if slots_data is Array:
+		slots.clear()
+		for s_data in slots_data:
+			if s_data is Dictionary:
+				var s = BuildSlotState.new()
+				s.from_dict(s_data)
+				slots.append(s)
+			else:
+				slots.append(null)
+		ensure_slots(9)

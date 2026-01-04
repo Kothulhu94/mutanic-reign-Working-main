@@ -1,0 +1,30 @@
+@context "Scene Registry & Structure"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\scenes"
+
+@scene "Overworld"
+  path: "overworld/overworld.gd"
+  analysis_ref: "scenes/overworld/Overworld_Analysis.toon"
+  role: "Main Game Loop"
+  @state "Componentized"
+    - `CaravanManager`: Handles AI Spawning.
+    - `OverworldUIManager`: Handles UI Screens.
+    - `MapLoader`: Chunk streaming.
+    - `MapManager`: Pathfinding Grid.
+
+@scene "Battle"
+  path: "battle/battle.gd"
+  role: "Turn-Based Combat (Stub)"
+  @status "Placeholder"
+    - Prints "Battle stub loaded".
+    - Returns to Overworld on confirm.
+
+@scene "UI"
+  path: "scenes/ui"
+  role: "Legacy / Placeholder"
+  @note
+    - Real UI scripts are located in `res://UI/`.
+    - This folder is essentially empty.
+
+@structure "Analysis Hierarchy"
+  - `Overworld_Analysis.toon`: Deep dive into Overworld.
+  - `UI_Scenes_Analysis.toon`: Notes on the placeholder status of `scenes/ui`.

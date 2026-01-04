@@ -1,29 +1,17 @@
-
-@context "Global Autoloads Analysis"
+@context "Autoloads & Global Scripts Analysis"
 @target_directory "d:\GodoTDev\mutanic-reign-Working-main\Autoloads"
 
 @autoload "Skills"
   script: "Skills.gd"
-  role: "Global Skill Registry & Database"
-  
-  @data_source
-    path: "res://data/Skills/"
-    type: "SkillResource (.tres)"
-    structure:
-      - "Domains" (Folders)
-      - "SkillDefs" (Resources)
-    
-  @initialization
-    method: "_ready"
-    logic:
-      1. Scans `res://data/Skills/` recursively.
-      2. Caches all found `Skill` resources into `_skills` dictionary.
-      3. Index Key: `skill.id` (StringName).
-
+  role: "Skill System Access"
+  @config
+    - Loads `res://data/SkillDatabase.tres`.
+    - Validates database on ready.
   @api
-    - `get_skill(id: StringName) -> Skill`: Returns the cached skill resource definition.
-    - `get_all_skills() -> Array[Skill]`: Returns list of all loaded skills.
+    - `get_skill(id)`: Returns `Skill` resource.
+    - `get_perk(id)`: Returns `Perk` resource.
+    - `get_domain(id)`: Alias for `get_skill` (Legacy support).
 
-  @notes
-    - optimization: "Preloads all skills at startup to prevent runtime IO hitches."
-    - failure_mode: "Returns null and warns if skill ID not found."
+@note "Architecture"
+  - This autoload is distinct from `TroopDatabase` (which is a node) but serves a similar purpose for RPG stats.
+  - It wraps a Resource (`SkillDatabase`) rather than building a Dictionary in code.

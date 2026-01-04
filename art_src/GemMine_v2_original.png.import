@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dr7wskrxc4eeh"
-path="res://.godot/imported/Bus_Sprite.png-0033a1b3417c39900d39570a24d3246e.ctex"
+uid="uid://d304dvni7oryl"
+path="res://.godot/imported/GemMine_v2_original.png-fb531e2eae0455a1c423d4daa5b8791e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Actors/Bus_Sprite.png"
-dest_files=["res://.godot/imported/Bus_Sprite.png-0033a1b3417c39900d39570a24d3246e.ctex"]
+source_file="res://art_src/GemMine_v2_original.png"
+dest_files=["res://.godot/imported/GemMine_v2_original.png-fb531e2eae0455a1c423d4daa5b8791e.ctex"]
 
 [params]
 

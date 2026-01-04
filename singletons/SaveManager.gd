@@ -76,7 +76,7 @@ func _save_player_data(save_data: Dictionary, player_node: Bus) -> void:
 	player_data["position"] = {"x": player_node.global_position.x, "y": player_node.global_position.y}
 	var player_sheet: Variant = null
 	if player_node.charactersheet != null:
-		player_sheet = _serialize_character_sheet(player_node.charactersheet)
+		player_sheet = player_node.charactersheet.to_dict()
 	player_data["sheet"] = player_sheet
 	player_data["inventory"] = player_node.inventory.duplicate(true)
 	player_data["pacs"] = player_node.pacs
@@ -100,7 +100,7 @@ func _save_caravan_data(save_data: Dictionary) -> void:
 			caravan_data["position"] = {"x": caravan.global_position.x, "y": caravan.global_position.y}
 			var caravan_state_data: Variant = null
 			if caravan.caravan_state != null:
-				caravan_state_data = _serialize_caravan_state(caravan.caravan_state)
+				caravan_state_data = caravan.caravan_state.to_dict()
 			caravan_data["state"] = caravan_state_data
 			var home_hub_id_str: String = ""
 			if caravan.home_hub != null:
@@ -135,7 +135,7 @@ func _save_hub_data(save_data: Dictionary) -> void:
 		if child is Hub:
 			var hub: Hub = child as Hub
 			if hub.state != null:
-				hub_data[str(hub.state.hub_id)] = _serialize_hub_state(hub.state)
+				hub_data[str(hub.state.hub_id)] = hub.state.to_dict()
 
 	save_data["hubs"] = hub_data
 
@@ -158,10 +158,9 @@ func _load_player_data(save_data: Dictionary) -> void:
 		player_node.global_position = Vector2.ZERO
 
 	var sheet_data: Variant = player_data.get("sheet", null)
+	player_node.charactersheet = CharacterSheet.new()
 	if sheet_data != null and sheet_data is Dictionary:
-		player_node.charactersheet = _deserialize_character_sheet(sheet_data)
-	else:
-		player_node.charactersheet = CharacterSheet.new()
+		player_node.charactersheet.from_dict(sheet_data)
 
 	player_node.inventory = player_data.get("inventory", {}).duplicate(true)
 	player_node.pacs = player_data.get("pacs", 1000)
@@ -196,7 +195,9 @@ func _load_hub_data(save_data: Dictionary) -> void:
 				if hub_data.has(hub_id_str):
 					var state_data: Variant = hub_data[hub_id_str]
 					if state_data is Dictionary:
-						hub.state = _deserialize_hub_state(state_data)
+						var hs = HubStates.new()
+						hs.from_dict(state_data)
+						hub.state = hs
 
 func _load_caravan_data(save_data: Dictionary) -> void:
 	if not save_data.has("caravans"):
@@ -217,6 +218,8 @@ func _load_caravan_data(save_data: Dictionary) -> void:
 	var item_db: ItemDB = load("res://data/Items/ItemsCatalog.tres")
 	var all_hubs: Array[Hub] = _get_all_hubs()
 
+	var map_manager: MapManager = get_tree().get_first_node_in_group("MapManager") as MapManager
+
 	for caravan_data: Dictionary in caravan_list:
 		var new_caravan: Node = caravan_scene.instantiate()
 		if new_caravan == null:
@@ -226,10 +229,12 @@ func _load_caravan_data(save_data: Dictionary) -> void:
 
 		var state_data: Variant = caravan_data.get("state", null)
 		if state_data != null and state_data is Dictionary:
-			new_caravan.caravan_state = _deserialize_caravan_state(state_data)
+			var cs = CaravanState.new()
+			cs.from_dict(state_data)
+			new_caravan.caravan_state = cs
 
 		new_caravan.current_state = caravan_data.get("current_state", 0)
-		new_caravan.purchase_prices = caravan_data.get("purchase_prices", {}).duplicate(true)
+		# new_caravan.purchase_prices = caravan_data.get("purchase_prices", {}).duplicate(true)
 
 		var home_hub_id_str: String = caravan_data.get("home_hub_id", "")
 		if not home_hub_id_str.is_empty():
@@ -256,19 +261,38 @@ func _load_caravan_data(save_data: Dictionary) -> void:
 		if caravan_data.has("movement_speed"):
 			new_caravan.movement_speed = caravan_data.get("movement_speed", 100.0)
 
-		if new_caravan.nav_agent != null:
-			if caravan_data.has("nav_target_position"):
-				var nav_pos_data: Variant = caravan_data.get("nav_target_position", null)
-				if nav_pos_data is Dictionary:
-					new_caravan.nav_agent.target_position = Vector2(nav_pos_data.get("x", 0.0), nav_pos_data.get("y", 0.0))
-				else:
-					new_caravan.nav_agent.target_position = new_caravan.global_position
-			else:
-				new_caravan.nav_agent.target_position = new_caravan.global_position
+		# --- COMPONENT RESTORATION & SETUP ---
+		
+		# 1. Skill System
+		if new_caravan.skill_system != null:
+			new_caravan.skill_system.setup(new_caravan.caravan_state)
+			
+		# 2. Trading System
+		if new_caravan.trading_system != null:
+			var surplus: float = 200.0 # Default
+			if new_caravan.home_hub != null and new_caravan.home_hub.economy_config != null:
+				surplus = new_caravan.home_hub.economy_config.caravan_surplus_threshold
+			new_caravan.trading_system.setup(new_caravan.caravan_state, item_db, new_caravan.skill_system, all_hubs, surplus)
 
+		# 3. Navigator & MapManager Injection
+		if new_caravan.navigator != null and map_manager != null:
+			var final_speed: float = new_caravan.movement_speed
 			if new_caravan.caravan_state != null and new_caravan.caravan_state.caravan_type != null:
-				new_caravan.nav_agent.max_speed = new_caravan.movement_speed
-				new_caravan.nav_agent.navigation_layers = new_caravan.caravan_state.caravan_type.navigation_layers
+				final_speed *= new_caravan.caravan_state.caravan_type.speed_modifier
+			if new_caravan.skill_system != null:
+				final_speed *= (1.0 + new_caravan.skill_system.speed_bonus)
+				
+			new_caravan.navigator.setup(new_caravan, map_manager, final_speed)
+			if new_caravan.caravan_state != null and new_caravan.caravan_state.caravan_type != null:
+				new_caravan.navigator.set_navigation_layers(new_caravan.caravan_state.caravan_type.navigation_layers)
+
+			# 4. Resume Navigation (If moving)
+			var current_state = new_caravan.current_state
+			# Caravan.State.TRAVELING = 2, RETURNING_HOME = 6
+			if current_state == 2 and new_caravan.current_target_hub != null:
+				new_caravan.navigator.set_target_position(new_caravan.current_target_hub.global_position)
+			elif current_state == 6 and new_caravan.home_hub != null:
+				new_caravan.navigator.set_target_position(new_caravan.home_hub.global_position)
 
 		if new_caravan.caravan_state != null and new_caravan.caravan_state.caravan_type != null:
 			var sprite: Sprite2D = new_caravan.get_node_or_null("Sprite2D") as Sprite2D
@@ -449,124 +473,6 @@ func _get_hubs_from_ids(hub_ids: Array, all_hubs: Array[Hub]) -> Array[Hub]:
 		if hub != null:
 			result.append(hub)
 	return result
-
-func _serialize_character_sheet(sheet: CharacterSheet) -> Dictionary:
-	if sheet == null:
-		return {}
-
-	var data: Dictionary = {}
-	data["character_name"] = sheet.character_name
-	data["character_description"] = sheet.character_description
-	data["level"] = sheet.level
-	data["base_health"] = sheet.base_health
-	data["base_damage"] = sheet.base_damage
-	data["base_defense"] = sheet.base_defense
-	data["current_health"] = sheet.current_health
-	data["attribute_health_multiplier"] = sheet.attribute_health_multiplier
-	data["attribute_damage_multiplier"] = sheet.attribute_damage_multiplier
-	data["attribute_defense_multiplier"] = sheet.attribute_defense_multiplier
-
-	return data
-
-func _deserialize_character_sheet(data: Dictionary) -> CharacterSheet:
-	var sheet: CharacterSheet = CharacterSheet.new()
-	sheet.character_name = data.get("character_name", "Nameless")
-	sheet.character_description = data.get("character_description", "")
-	sheet.level = data.get("level", 1)
-	sheet.base_health = data.get("base_health", 100)
-	sheet.base_damage = data.get("base_damage", 10)
-	sheet.base_defense = data.get("base_defense", 5)
-	sheet.current_health = data.get("current_health", 100)
-	sheet.attribute_health_multiplier = data.get("attribute_health_multiplier", 5)
-	sheet.attribute_damage_multiplier = data.get("attribute_damage_multiplier", 5)
-	sheet.attribute_defense_multiplier = data.get("attribute_defense_multiplier", 5)
-
-	return sheet
-
-func _serialize_caravan_state(state: CaravanState) -> Dictionary:
-	if state == null:
-		return {}
-
-	var data: Dictionary = {}
-	data["home_hub_id"] = str(state.home_hub_id)
-	data["destination_hub_id"] = str(state.destination_hub_id)
-	data["inventory"] = state.inventory.duplicate(true)
-	data["pacs"] = state.pacs
-	data["profit_this_trip"] = state.profit_this_trip
-	data["current_leg"] = state.current_leg
-	var leader_sheet_data: Variant = null
-	if state.leader_sheet != null:
-		leader_sheet_data = _serialize_character_sheet(state.leader_sheet)
-	data["leader_sheet"] = leader_sheet_data
-
-	if state.caravan_type != null:
-		data["caravan_type_path"] = state.caravan_type.resource_path
-
-	return data
-
-func _deserialize_caravan_state(data: Dictionary) -> CaravanState:
-	var state: CaravanState = CaravanState.new()
-	state.home_hub_id = StringName(data.get("home_hub_id", ""))
-	state.destination_hub_id = StringName(data.get("destination_hub_id", ""))
-	state.inventory = data.get("inventory", {}).duplicate(true)
-	state.pacs = data.get("pacs", 0)
-	state.profit_this_trip = data.get("profit_this_trip", 0)
-	state.current_leg = data.get("current_leg", CaravanState.Leg.OUTBOUND)
-
-	var leader_data: Variant = data.get("leader_sheet", null)
-	if leader_data != null and leader_data is Dictionary:
-		state.leader_sheet = _deserialize_character_sheet(leader_data)
-
-	var caravan_type_path: String = data.get("caravan_type_path", "")
-	if not caravan_type_path.is_empty():
-		state.caravan_type = load(caravan_type_path)
-
-	return state
-
-func _serialize_hub_state(state: HubStates) -> Dictionary:
-	if state == null:
-		return {}
-
-	var data: Dictionary = {}
-	data["hub_id"] = str(state.hub_id)
-	data["display_name"] = state.display_name
-	data["governor_id"] = str(state.governor_id)
-	data["pacs"] = state.pacs
-	data["inventory"] = state.inventory.duplicate(true)
-	data["base_population_cap"] = state.base_population_cap
-	data["pacs"] = state.pacs
-	data["inventory"] = state.inventory.duplicate(true)
-	data["base_population_cap"] = state.base_population_cap
-	data["starvation_cap_penalty"] = state.starvation_cap_penalty
-	data["trade_prices"] = state.trade_prices.duplicate(true)
-	data["trade_prices"] = state.trade_prices.duplicate(true)
-	
-	var governor_sheet_data: Variant = null
-	if state.governor_sheet != null:
-		governor_sheet_data = _serialize_character_sheet(state.governor_sheet)
-	data["governor_sheet"] = governor_sheet_data
-
-	return data
-
-func _deserialize_hub_state(data: Dictionary) -> HubStates:
-	var state: HubStates = HubStates.new()
-	state.hub_id = StringName(data.get("hub_id", ""))
-	state.display_name = data.get("display_name", "Settlement")
-	state.governor_id = StringName(data.get("governor_id", ""))
-	state.pacs = data.get("pacs", 0)
-	state.inventory = data.get("inventory", {}).duplicate(true)
-	state.base_population_cap = data.get("base_population_cap", 100)
-	state.inventory = data.get("inventory", {}).duplicate(true)
-	state.base_population_cap = data.get("base_population_cap", 100)
-	state.starvation_cap_penalty = data.get("starvation_cap_penalty", 0.0)
-	state.trade_prices = data.get("trade_prices", {}).duplicate(true)
-	state.trade_prices = data.get("trade_prices", {}).duplicate(true)
-	
-	var sheet_data: Variant = data.get("governor_sheet", null)
-	if sheet_data != null and sheet_data is Dictionary:
-		state.governor_sheet = _deserialize_character_sheet(sheet_data)
-
-	return state
 
 func _clear_overworld_pathline() -> void:
 	var overworld: Node = _get_overworld_node()

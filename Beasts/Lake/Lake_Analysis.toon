@@ -1,0 +1,26 @@
+@context "Lake Biome Bestiary"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Beasts\Lake"
+
+@beast "Glassfin Swarm"
+  script: "GlassfinSwarm.gd"
+  tier: "T1"
+  role: "Swarm Scavenger"
+  stats: { HP: 12, Dmg: 6, Def: 2, Speed: 100.0 }
+  behavior: "Roam"
+  note: "Razor minnows. Future: +30% fishing/scavenge yield."
+
+@beast "Mudback Snapper"
+  script: "MudbackSnapper.gd"
+  tier: "T2"
+  role: "Amphibious Tank"
+  stats: { HP: 45, Dmg: 9, Def: 12, Speed: 65.0 }
+  behavior: "Territorial"
+  note: "Wide plastron. Future: +10% bog/mud speed."
+
+@beast "Ripple Leviathan"
+  script: "RippleLeviathan.gd"
+  tier: "T3"
+  role: "Water Boss"
+  stats: { HP: 80, Dmg: 18, Def: 14, Speed: 90.0 }
+  behavior: "Territorial"
+  note: "Barometric warning. Future: Water travel capability."

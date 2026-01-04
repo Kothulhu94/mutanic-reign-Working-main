@@ -1,0 +1,26 @@
+@context "Forest Biome Bestiary"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Beasts\Forest"
+
+@beast "Thornback Boar"
+  script: "ThornbackBoar.gd"
+  tier: "T1"
+  role: "Forager"
+  stats: { HP: 20, Dmg: 5, Def: 3, Speed: 75.0 }
+  behavior: "Roam"
+  note: "Future: +20% forage yield."
+
+@beast "Myco Stag"
+  script: "MycoStag.gd"
+  tier: "T2"
+  role: "Curative Scout"
+  stats: { HP: 35, Dmg: 8, Def: 9, Speed: 95.0 }
+  behavior: "Roam"
+  note: "Hosts bioluminescent lichens. Future: +25% herb detection."
+
+@beast "Canopy Panther"
+  script: "CanopyPanther.gd"
+  tier: "T3"
+  role: "Ambush Predator"
+  stats: { HP: 50, Dmg: 20, Def: 12, Speed: 130.0 }
+  behavior: "Hunt Player"
+  note: "Shadow-silent. Future: -25% ambush chance."

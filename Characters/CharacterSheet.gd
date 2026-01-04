@@ -73,27 +73,38 @@ func get_max_stack_size() -> int:
 	return base_max_stack_size + bonus
 
 ## Checks if a specific amount of an item can be added without exceeding limits.
+func get_occupied_slots() -> int:
+	var slots: int = 0
+	var stack_limit: int = get_max_stack_size()
+	if stack_limit <= 0: return inventory.size()
+	
+	for count in inventory.values():
+		if count > 0:
+			slots += int(ceil(float(count) / float(stack_limit)))
+	return slots
+
+## Checks if a specific amount of an item can be added without exceeding limits.
 func can_add_item(item_id: StringName, amount: int) -> bool:
 	if amount <= 0:
 		return true
 
-	var current_amount: int = inventory.get(item_id, 0)
-	var is_new_stack: bool = not inventory.has(item_id) or current_amount == 0
-	
 	var stack_limit: int = get_max_stack_size()
-	var slot_limit: int = get_max_slots()
-
-	# Check 1: Max stack size for this specific item
-	if current_amount + amount > stack_limit:
-		# print("Cannot add %d %s: Exceeds max stack size (%d)." % [amount, item_id, stack_limit])
-		return false
-
-	# Check 2: Max unique stacks if this is a new item type
-	if is_new_stack and inventory.size() >= slot_limit:
-		# print("Cannot add %s: Exceeds max unique stacks (%d)." % [item_id, slot_limit])
-		return false
-
-	return true
+	var max_slots: int = get_max_slots()
+	
+	# Virtual Stack Logic:
+	# Calculate total slots required if we add this item
+	var current_total: int = inventory.get(item_id, 0) + amount
+	var slots_needed_for_item: int = int(ceil(float(current_total) / float(stack_limit)))
+	
+	# Sum up used slots from OTHER items
+	var other_slots: int = 0
+	for k in inventory.keys():
+		if k != item_id:
+			var c: int = inventory[k]
+			if c > 0:
+				other_slots += int(ceil(float(c) / float(stack_limit)))
+	
+	return (slots_needed_for_item + other_slots) <= max_slots
 
 ## Adds a specified amount of an item to the inventory.
 func add_item(item_id: StringName, amount: int) -> bool:
@@ -104,6 +115,7 @@ func add_item(item_id: StringName, amount: int) -> bool:
 		var new_amount: int = inventory.get(item_id, 0) + amount
 		inventory[item_id] = new_amount
 		inventory_changed.emit(item_id, new_amount)
+		print("CharacterSheet: Added %d %s. New Total: %d. Inventory Size: %d" % [amount, item_id, new_amount, inventory.size()])
 		return true
 	
 	return false
@@ -321,6 +333,8 @@ func get_attribute_level(attribute_id: StringName) -> int:
 
 # --- Serialization ---
 
+# --- Serialization ---
+
 ## Serializes character sheet data to a Dictionary for save games.
 func to_dict() -> Dictionary:
 	var save_data: Dictionary = {}
@@ -329,6 +343,17 @@ func to_dict() -> Dictionary:
 	save_data["character_name"] = character_name
 	save_data["character_description"] = character_description
 	save_data["level"] = level
+	
+	# Store Base Stats
+	save_data["base_health"] = base_health
+	save_data["base_damage"] = base_damage
+	save_data["base_defense"] = base_defense
+	save_data["current_health"] = current_health
+	
+	# Store Multipliers
+	save_data["attribute_health_multiplier"] = attribute_health_multiplier
+	save_data["attribute_damage_multiplier"] = attribute_damage_multiplier
+	save_data["attribute_defense_multiplier"] = attribute_defense_multiplier
 
 	# Store attributes
 	if attributes:
@@ -340,7 +365,8 @@ func to_dict() -> Dictionary:
 	var skills_data: Dictionary = {}
 	for skill_id in skills.keys():
 		var skill_obj: Skill = skills[skill_id]
-		skills_data[skill_id] = skill_obj.to_dict()
+		if skill_obj:
+			skills_data[skill_id] = skill_obj.to_dict()
 	save_data["skills"] = skills_data
 
 	# Store equipment
@@ -348,21 +374,31 @@ func to_dict() -> Dictionary:
 	for slot in equipment.keys():
 		equipment_data[str(slot)] = equipment[slot]
 	save_data["equipment"] = equipment_data
+	
+	# Store Inventories
+	save_data["inventory"] = inventory.duplicate(true)
+	save_data["troop_inventory"] = troop_inventory.duplicate(true)
 
 	return save_data
 
 
 ## Loads character sheet data from a Dictionary (for save games).
-## Note: This assumes Skills are already KNOWN (i.e. from a database)
-## but since we don't have the database passed in here easily, this usually
-## requires a hydration step or we just assume we load state into existing instances.
-## For now, we will perform a basic load. Ideally, the game loader refills the 
-## 'skills' dictionary with fresh resources from DB, and THEN calls this to load state.
 func from_dict(data: Dictionary) -> void:
 	# Load basic character data
 	character_name = data.get("character_name", "Nameless")
 	character_description = data.get("character_description", "")
 	level = data.get("level", 1)
+	
+	# Load Base Stats
+	base_health = data.get("base_health", 100)
+	base_damage = data.get("base_damage", 10)
+	base_defense = data.get("base_defense", 5)
+	current_health = data.get("current_health", 100)
+	
+	# Load Multipliers
+	attribute_health_multiplier = data.get("attribute_health_multiplier", 5)
+	attribute_damage_multiplier = data.get("attribute_damage_multiplier", 5)
+	attribute_defense_multiplier = data.get("attribute_defense_multiplier", 5)
 
 	# Load attributes
 	if data.has("attributes"):
@@ -371,12 +407,6 @@ func from_dict(data: Dictionary) -> void:
 		attributes.from_dict(data["attributes"])
 
 	# Load skills
-	# Warning: If skills dictionary is empty (new session), we can't load partial state
-	# without the original resource definition.
-	# The SkillDatabase should typically be used to re-instantiate skills.
-	# For this implementation, we assume the 'skills' dictionary is populated 
-	# OR we might miss data if not initialized. 
-	# A robust system would inject the SkillDatabase. 
 	if data.has("skills") and data["skills"] is Dictionary:
 		var saved_skills = data["skills"]
 		for skill_id in saved_skills.keys():
@@ -384,9 +414,7 @@ func from_dict(data: Dictionary) -> void:
 			if skills.has(skill_id):
 				skills[skill_id].from_dict(saved_skills[skill_id])
 			else:
-				# If we don't have it, we can't easily recreate the full Perk Tree structure
-				# without the Resource. This is a common pattern issue.
-				# We will skip for now, assuming initialization happens elsewhere.
+				# Ideally we would load the resource from a DB here if missing
 				pass
 
 	# Load equipment
@@ -396,6 +424,13 @@ func from_dict(data: Dictionary) -> void:
 			var slot: int = int(slot_str)
 			var item_id: StringName = StringName(equipment_data[slot_str])
 			equipment[slot] = item_id
+			
+	# Load Inventories
+	if data.has("inventory"):
+		inventory = data.get("inventory", {}).duplicate(true)
+		
+	if data.has("troop_inventory"):
+		troop_inventory = data.get("troop_inventory", {}).duplicate(true)
 
 # --- Health ---
 

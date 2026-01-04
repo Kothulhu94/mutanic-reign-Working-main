@@ -1,0 +1,7 @@
+@context "UI Scene Directory Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\scenes\ui"
+
+@status "Deprecated / Placeholder"
+  - This directory (`scenes/ui`) is currently empty or unused.
+  - **Actual UI Implementation**: Located in `d:\GodoTDev\mutanic-reign-Working-main\UI`.
+  - See `d:\GodoTDev\mutanic-reign-Working-main\UI\UI_Analysis.toon` for real analysis.

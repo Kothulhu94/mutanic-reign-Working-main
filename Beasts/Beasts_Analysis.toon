@@ -1,61 +1,58 @@
-
 @context "Beasts & Ecosystem Analysis"
 @target_directory "d:\GodoTDev\mutanic-reign-Working-main\Beasts"
 
 @entity "Beast"
   type: "Base Class (Area2D)"
   script: "Beast.gd"
+  role: "Polymorphic Enemy"
+  @architecture
+    - "Navigation": Uses `MapManager.get_path_world()`. Does NOT use Godot `NavigationAgent2D` (removed).
+    - "Stats": Owns a `CharacterSheet` for combat data (HP, Dmg, Def).
+    - "Signals": `player_initiated_chase` (Click-to-fight).
   
-  @properties
-    movement_speed: float (80.0)
-    ai_behavior: Enum (roam, hunt_caravans, hunt_player, territorial)
-    charactersheet: "Combat Stats Container"
+  @api
+    - `move_to(target_pos)`: Requests path from map manager. Includes optimization to skip current cell if center is behind us.
+    - `update_movement(delta)`: Moves along `_current_path`.
+    - `initialize_charactersheet(hp, dmg, def)`: Helper for subclasses.
 
-  @behavior
-    - "Roam": Default state, wanders via MapManager pathfinding.
-    - "Signals": `player_initiated_chase` for combat start.
-    - "Optimization": Path smoothing to avoid center-of-cell backtracking.
-
-@entity "BeastDen"
-  type: "Spawner Building"
-  script: "BeastDen.gd"
+@entity "ScrapjackalPack"
+  extends: "Beast"
+  location: "Beasts/Grassland/ScrapjackalPack.gd"
+  role: "Aggressive Scavenger"
+  @stats
+    - HP: 15
+    - Dmg: 6
+    - Def: 2
+    - Speed: 90.0
   
-  @features
-    - "Spawning": Tick-based logic via `Timekeeper`.
-    - "Emergency Spawn": Bursts units when health drops below threshold.
-    - "Navigation Obstacle": Carves holes in NavMesh (`NavigationCarver`).
-    - "Logic": Maintains `active_beasts` list, respects `max_active_beasts`.
+  @ai "State Machine"
+    1. **WANDERING**:
+       - Picks random point within `WANDER_RADIUS` (400px) of `home_position`.
+       - Checks for enemies every tick (expensive? check optimization later).
+    2. **CHASING**:
+       - Triggered if Player or Caravan < `AGGRO_RADIUS` (300px).
+       - Updates path to target.
+       - If dist < 50.0: Emits `player_initiated_chase` (Automatic engage).
+       - If dist > `AGGRO_RADIUS * 1.5`: Give up.
 
 @ecosystem "Biomes"
-  @forest
-    - "CanopyPanther"
-    - "MycoStag"
-    - "ThornbackBoar"
-  
   @grassland
-    - "ScrapjackalPack" (Featured AI logic inside)
-    - "TitanBison"
-    - "WindrunnerAntelope"
-  
+    - `ScrapjackalPack`: Aggressive.
+    - `TitanBison`: High HP, Passive unless provoked (Assumed).
+    - `WindrunnerAntelope`: High speed, Flee behavior (Assumed).
+  @forest
+    - `CanopyPanther`: Ambush predator.
+    - `MycoStag`: Neutral tank.
+    - `ThornbackBoar`: Aggressive charger.
   @lake
-    - "GlassfinSwarm"
-    - "MudbackSnapper"
-    - "RippleLeviathan"
-  
+    - `GlassfinSwarm`: Swarm behavior.
+    - `MudbackSnapper`: High def.
+    - `RippleLeviathan`: Boss-tier.
   @mesa
-    - "BasaltScuttlers"
-    - "CinderVulture"
-    - "SunspineRam"
+    - `BasaltScuttlers`: Pack behavior.
+    - `CinderVulture`: Flying? check layers.
+    - `SunspineRam`: Knobckback?
 
-@ai_sample "ScrapjackalPack"
-  script: "Beasts/Grassland/ScrapjackalPack.gd"
-  behavior: "Aggressive Scavenger"
-  
-  @fsm
-    1. "ROAM": Wander until target found.
-    2. "HUNT": Pursue caravans or player.
-    3. "RETURN": Go back to Den if too far.
-  
-  @unique
-    - "Pack Logic": Can coordinate with other Scrapjackals (future ext).
-    - "Loot Interest": Prefer targets with specific items (future ext).
+@notes
+  - "Common Logic": Most beasts share the `Beast.gd` movement code but implement their own `_update_ai` FSM.
+  - "Optimization": `Beast.gd` has `path_smoothing` to prevent "backtracking" to cell centers.

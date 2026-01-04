@@ -1,0 +1,26 @@
+@context "Grassland Biome Bestiary"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Beasts\Grassland"
+
+@beast "Scrapjackal Pack"
+  script: "ScrapjackalPack.gd"
+  tier: "T1"
+  role: "Pack Scavenger"
+  stats: { HP: 15, Dmg: 6, Def: 2, Speed: 90.0 }
+  behavior: "Aggressive / Roam"
+  note: "Fast nippers. Low staying power."
+
+@beast "Windrunner Antelope"
+  script: "WindrunnerAntelope.gd"
+  tier: "T2"
+  role: "Speed Mount"
+  stats: { HP: 40, Dmg: 8, Def: 5, Speed: 120.0 }
+  behavior: "Roam (Passive?)"
+  note: "Built for endurance. Future: +8% road speed."
+
+@beast "Titan Bison"
+  script: "TitanBison.gd"
+  tier: "T3"
+  role: "Heavy Hauler"
+  stats: { HP: 80, Dmg: 12, Def: 14, Speed: 60.0 }
+  behavior: "Territorial"
+  note: "Bone-plated shoulders. Future: +20% inventory capacity."

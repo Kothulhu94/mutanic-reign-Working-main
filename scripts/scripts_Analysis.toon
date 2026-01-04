@@ -1,0 +1,73 @@
+@context "Global Scripts & Systems Analysis"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\scripts"
+
+@system "MapManager"
+  script: "MapManager.gd"
+  role: "Navigation Orchestrator"
+  @architecture "Modular/Refactored"
+    - "Core": Manages active AStarGrid2D instances via `active_grids`.
+    - "Helpers":
+      - `BoundaryCalculator`: Handles exit/entry math for abstract movement boundaries.
+      - `GridMasker`: Applies circular/square/plus shapes to the navigation grids.
+      - `TerrainSynchronizer`: Syncs terrain pixel data (grass, sand, water) to A* weights/solidity.
+      - `NavConstants`: Shared constants (CHUNK_SIZE, LAYER_IDs).
+  
+  @grid_logic
+    - "Multi-Layered": Each active grid entry contains a dictionary of `AStarGrid2D` instances keyed by layer ID.
+      - `LAYER_LAND` (1): Walkable on Land, blocked by Water.
+      - `LAYER_WATER` (2): Walkable on Water, blocked by Land (conceptually, though currently syncs share weights).
+    - "Dynamic Region": Updates `astar.region` based on player/source position relative to chunks.
+    - "Cell Size": 64x64 pixels (by default).
+  
+  @api
+    - `register_grid_source(id, pos, radius, shape)`: Adds a new tracked entity (e.g., Caravan).
+    - `get_path_world(start, end, layers)`: Returns world-space path for specific capabilities (Land vs Amphibious).
+    - `get_nav_boundary_exit(...)`: Calculates where an entity leaves the loaded grid.
+    - `get_nav_boundary_entry(...)`: Calculates where an entity enters the loaded grid.
+
+@script "NavConstants.gd"
+  role: "Shared Constants"
+  @consts
+    - `CHUNK_SIZE`: 1024
+    - `DEFAULT_RADIUS`: 1
+    - `LAYER_LAND`: 1
+    - `LAYER_WATER`: 2
+    - `GridShape`: Enum { SQUARE, PLUS }
+
+@script "BoundaryCalculator.gd"
+  role: "Math Logic"
+  @methods
+    - `get_nav_boundary_exit`: Raycast-like slab intersection against grid bounds.
+    - `get_nav_boundary_entry`: Inverse raycast finding first entry point.
+
+@script "GridMasker.gd"
+  role: "Region Shaping"
+  @methods
+    - `apply_shape_mask`: Marks cells outside the defined shape (e.g., PLUS) as solid.
+
+@script "TerrainSynchronizer.gd"
+  role: "Physics/Data Sync"
+  @logic
+    - "Optimization": Skips `terrain_id < 10` (Grass) for performance.
+    - "ID Mapping":
+      - `40-60` (Sand): 1.25x Cost.
+      - `90-110` (Snow): 2.0x Cost.
+      - `140-160` (Water): Solid on Land Layer, Walkable (1.0x) on Water Layer.
+
+@script "MapLoader.gd"
+  role: "Asset Streamer"
+  @features
+    - "Chunking": Loads/Unloads terrain chunks (images) based on player position.
+    - "Data": Stores `loaded_terrain_data` (Dictionary[Vector2i, Image]).
+    - "Terrain ID": `get_terrain_at(global_pos)` samples image data.
+
+@script "EditorMapLoader.gd"
+  role: "Editor Tooling"
+  @features
+    - "Preview": Simulates map loading in the editor viewport without running the game.
+
+@script "combat.gd"
+  role: "Combat Math"
+  @logic
+    - "Rolls": `10 + Stat + rand(0, 49)`.
+    - "Casualties": Threshold-based death chance (>67% HP = 10% chance, <34% HP = 75% chance).

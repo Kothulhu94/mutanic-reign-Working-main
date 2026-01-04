@@ -1,53 +1,37 @@
-
-@context "Building Architecture & Economy Analysis"
+@context "Building Architecture & Industry Analysis"
 @target_directory "d:\GodoTDev\mutanic-reign-Working-main\Buildings"
 
-@base_class "Building"
-  script: "Building.gd"
-  role: "Abstract Base"
-  @properties
-    display_name: String
-    footprint: Vector2i (1, 1)
-    pop_cap_bonus: int (0)
-  @methods
-    tick_economy(dt): "Computes resource delta based on static produces/consumes dicts."
-
 @base_class "ProducerBuilding"
-  extends: "Node2D"
   script: "ProducerBuilding.gd"
-  role: "Generator (Source)"
-  @mechanic "Tick-Based Generation"
-    logic: "Produces `base_amount` of `product_item_id` every tick."
-    scaling: "Output & PopCap *= 1.5 ^ (level - 1)"
-  @upgrade
-    cost: "200 PACs * 2^(level-1)"
-    time: "200 Ticks * 2^(level-1)"
+  role: "Source (Tick Generator)"
+  @logic
+    - "Production": `produce_tick(gov_bonus)` -> Returns `{ product_id: amount }`.
+    - "Amount": `base_amount * pow(1.5, level-1) * (1 + bonus)`.
+  @scaling
+    - "Cost Base": 100 PACs.
+    - "Time Base": 100 Ticks.
+    - "Upgrade": Cost/Time doubles per level. Power 1.5x per level.
 
 @base_class "ProcessorBuilding"
-  extends: "Node2D"
   script: "ProcessorBuilding.gd"
-  role: "Refiner (Converter)"
-  @mechanic "Recipe Processing"
-    selection: "`by_id` or `by_tags` (e.g. any 'metal' or specific 'copper_ore')"
-    stratgey: "First Match / Highest Stock / Lowest Price"
-    logic: "Accumulates `work_progress`. When > 1.0, attempts to consume input & produce output."
-    efficiency: "Affected by level, governor bonus, and building efficiency_mult."
+  role: "Converter (Recipe Engine)"
+  @logic
+    - "Work Buffer": Accumulates `work_progress` based on efficiency, level, and governor skills.
+    - "Refine Tick":
+      1. Checks if `work_progress >= 1.0`.
+      2. **Candidate Search**: Picks best input from `hub_inventory` based on strategy (`first_match`, `highest_stock`, `lowest_price`).
+      3. **Constraint**: Requires `have >= input_per_output` to start *one* cycle.
+      4. **Execution**: Consumes input, produces output, subtracts `1.0` from work buffer.
+  
+  @configuration
+    - `selection_mode`: "by_id" (Specific item) or "by_tags" (Category).
+    - `input_pick_strategy`: Flexible logic for generic factories (e.g. Smelter taking any "ore").
 
-@implementations "Concrete Buildings"
-  @producers
-    - "WheatFarm": Generates "Wheat".
-    - "CottonFarm", "CoffeeFarm", "HempFarm", "LichenFarm"
-    - "GemMine", "StoneQuarry", "OreExtractor"
-    - "RabbitHutch", "CrystalHarvester", "FungusVat"
-    
-  @processors
-    - "Bakery": Input "Wheat" -> Output "WheatBread" (Dynamic `_compute_output_id`).
-    - "Smelter", "Foundry", "CrystalForge"
-    - "TextileMill", "MedicalLoom", "Jeweler"
-    - "Apothecary", "StimLab", "PharmaLab"
-    - "Roaster", "FieldKitchen", "NutrientSynthesizer"
+@implementations "Concrete Examples"
+  - `WheatFarm`: Produces "wheat". Level 1.
+  - `Bakery`: Consumes "wheat" -> Produces "wheat_bread".
+  - `Smelter`: Tag "ore" -> Matches highest stock -> Produces Refined Metal (dynamic output logic needed if polymorphic).
 
 @notes
-  - "Architecture": Strong separation between "Source" (Producer) and "Sink/Converter" (Processor).
-  - "Economy": All buildings act as 'tick' listeners, returning inventory deltas to the Hub.
-  - "Visuals": Concrete classes (e.g. Bakery.gd) generally just set textures and specific IDs/Methods, delegating logic to base.
+  - "Statelessness": Buildings are Nodes, but their *logic* behaves like a functional pipeline called by `HubEconomy`. 
+  - "Fixes": `ProcessorBuilding` explicitly fixes the "partial consume" bug by requiring a full input unit before processing.

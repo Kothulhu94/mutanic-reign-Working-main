@@ -10,6 +10,6 @@ display_name = "Material Hauler"
 sprite = ExtResource("2_8863v")
 speed_modifier = 0.8
 capacity_modifier = 1.5
-starting_money_multiplier = 30.0
+starting_money_multiplier = 500.0
 preferred_tags = Array[StringName]([&"material"])
 metadata/_custom_type_script = "uid://baj5eti6c1qc7"

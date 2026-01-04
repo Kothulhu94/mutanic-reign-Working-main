@@ -11,7 +11,9 @@ var item_db: ItemDB
 var economy_manager: HubEconomyManager
 
 # Pricing state
+# Pricing state
 var item_prices: Dictionary = {}
+var export_cooldowns: Dictionary = {}
 var _consumption_ema: Dictionary = {}
 var _last_consumed: Dictionary = {}
 var _last_produced: Dictionary = {}
@@ -23,6 +25,25 @@ func setup(s: HubStates, db: ItemDB, econ_mgr: HubEconomyManager) -> void:
 	economy_manager = econ_mgr
 	economy_manager.economy_tick_processed.connect(_on_economy_tick)
 
+func process_tick(dt: float) -> void:
+	if export_cooldowns.is_empty():
+		return
+		
+	var keys = export_cooldowns.keys()
+	for k in keys:
+		var val = export_cooldowns[k]
+		val -= dt
+		if val <= 0.0:
+			export_cooldowns.erase(k)
+		else:
+			export_cooldowns[k] = val
+
+func set_export_cooldown(item_id: StringName, time: float) -> void:
+	export_cooldowns[item_id] = time
+
+func get_export_cooldown(item_id: StringName) -> float:
+	return export_cooldowns.get(item_id, 0.0)
+
 func get_item_price(item_id: StringName) -> float:
 	# Return current dynamic price, or calculate on-demand if not tracked
 	if item_prices.has(item_id):
@@ -33,6 +54,8 @@ func get_item_price(item_id: StringName) -> float:
 	return _calculate_item_price(item_id, stock, rate)
 
 func buy_from_hub(item_id: StringName, amount: int, _caravan_state: CaravanState) -> bool:
+	# Check cooldown first? No, player might buy manually. Cooldown is for AUTOMATED caravans.
+	# But actually, buying removes from hub. 
 	# Caravan buys from hub (hub loses inventory, caravan gains)
 	var available: int = state.inventory.get(item_id, 0)
 	if available < amount:

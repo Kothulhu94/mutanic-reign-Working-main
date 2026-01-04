@@ -3,6 +3,8 @@
 @target_files
   - "overworld.tscn"
   - "Overworld.gd"
+  - "scenes/overworld/components/CaravanManager.gd"
+  - "scenes/overworld/components/OverworldUIManager.gd"
 
 @scene "overworld.tscn"
   @root "Overworld"
@@ -17,11 +19,7 @@
           script: "res://scripts/MapManager.gd"
         - "MapManager" (Node2D)
           script: "res://scripts/EditorMapLoader.gd"
-          @children
-            - "GridData" (TileMapLayer)
-              tile_set: "res://resources/GridDataTileSet.tres"
-        - "CharacterBody2D" (Instance)
-          source: "res://Actors/Bus.tscn"
+        - "CharacterBody2D" (Instance: res://Actors/Bus.tscn)
           note: "Player bus, scale impacted by parent"
 
     - "PathLine" (Line2D)
@@ -29,79 +27,61 @@
       width: 5.0
       color: "Red"
 
-    - "Oakmill" (Instance)
-      source: "res://Hub/Hub.tscn"
-      state: "res://data/Hubs/Oakmill.tres"
-
-    - "Stonegrove" (Instance)
-      source: "res://Hub/Hub.tscn"
-      state: "res://data/Hubs/Stonegrove.tres"
-
-    - "UILayer" (CanvasLayer)
-      @children
-        - "HubMenuUI" (Instance: res://UI/HubMenuUI.tscn)
-        - "MarketUI" (Instance: res://UI/MarketUI.tscn)
-        - "RecruitmentUI" (Instance: res://UI/RecruitmentUI.tscn)
-
-    - "BeastDen" (Instance)
-      source: "res://Beasts/BeastDen.tscn"
-      den_type: "res://data/BeastDens/ScrapjackalDen.tres"
+    - "Oakmill" (Instance: res://Hub/Hub.tscn)
+    - "Stonegrove" (Instance: res://Hub/Hub.tscn)
+    - "BeastDen" (Instance: res://Beasts/BeastDen.tscn)
 
 @script "Overworld.gd"
   @extends Node2D
   
   @properties
     @exports
-      bus_scene: PackedScene (default: uid://c14uenn8n47fb)
+      bus_scene: PackedScene
       camera_scene: PackedScene
       caravan_scene: PackedScene
       item_db: ItemDB
-      caravan_spawn_interval: float (1.0s)
-    @state
-      _is_paused: bool
-      _path_world: PackedVector2Array
-      _caravan_type_counters: Dictionary
-      caravan_threshold_multipliers: Dictionary
+    @managers
+      caravan_manager: OverworldCaravanManager
+      ui_manager: OverworldUIManager
   
   @systems
     @initialization
-      - "Robustness Check": Reloads default scenes if null.
-      - "MapLoader Injection": Instantiates MapLoader into MapScenery.
-      - "MapManager Discovery": Locates MapManager in MapScenery or Root.
-      - "Bus Discovery/Spawning": Finds existing Bus (fixes scaling) or spawns new one.
-      - "Camera Setup": Instantiates Camera2D, injects dependencies.
-      - "UI Initialization": Creates CanvasLayers for Encounter, Market, Loot, GameOver UIs.
-    
-    @caravan_logic
-      method: "_try_spawn_caravans"
-      trigger: "_process" (every 1.0s)
-      algorithm:
-        1. Iterate all Hubs.
-        2. Check for item surplus based on CaravanType preferred tags.
-        3. threshold_multiplier increases by 5x after spawn to prevent spam.
-        4. Spawns Caravan instance, sets up State/Leader, injects dependencies.
-    
-    @navigation_logic
-      movement: "Handled by Bus.gd (move_to)"
-      pathfinding: "MapManager.get_path_world"
-      visualization:
-        node: "Line2D (PathLine)"
-        method: "_trim_path_as_bus_moves"
-        logic: "Trims points from Line2D as Bus approaches them (tolerance: 2.0)"
-    
-    @combat_interaction
-      flow:
-        1. "_on_encounter_initiated" -> Opens EncounterUI, sets _target_actor.
-        2. "_on_combat_ended" -> Closes EncounterUI.
-        3. Winner Check:
-           - If Player wins: Opens LootUI.
-           - If Player loses: Opens GameOverUI.
-      trade:
-        - "Opens MarketUI" if trade requested.
-        - "Transaction": Updates Player & Merchant inventories/cash. Awards Skill XP.
+      - "Robustness": Reloads default scenes if null.
+      - "MapLoader": Instantiates MapLoader.
+      - "Dynamic Components": Instantiates `CaravanManager` and `UIManager` in `_ready()`.
+      - "Camera": Instantiates Camera2D.
     
     @input_handling
       mouse_left:
-        - If active chase: Cancel chase.
-        - "Visualize Path": Calls MapManager.
-        - "Move Bus": Calls _player_bus.move_to().
+        - "Move Bus": Calls `_player_bus.move_to()`.
+        - "Cancel Chase": Calls `chase_target(null)`.
+
+@component "OverworldCaravanManager"
+  script: "scenes/overworld/components/CaravanManager.gd"
+  role: "Trade Fleet Orchestrator"
+  @logic
+    @spawning "Garage System"
+      trigger: "_process" (Timer: caravan_spawn_interval)
+      algorithm:
+        1. Iterate all Hubs.
+        2. Check for surplus of `CaravanType.preferred_tags`.
+        3. Apply `threshold_multiplier` (increases 5x per spawn).
+        4. Request Hub->TradeRun -> Spawn Caravan.
+    
+    @trading_logic
+      - "Expertise": Assigns perks like `food_market_expertise` based on CaravanType.
+      - "Capital": Enforces minimum 2000 PACs starting money.
+      - "Lifecycle": Connects `player_initiated_chase` -> `overworld._on_chase_initiated`.
+
+@component "OverworldUIManager"
+  script: "scenes/overworld/components/OverworldUIManager.gd"
+  role: "Interface Controller"
+  @managed_uis
+    - "EncounterUI": Combat/Interaction loop.
+    - "MarketUI": Trade interface (Hubs & Caravans).
+    - "LootUI": Post-combat rewards.
+    - "GameOverUI": Defeat screen.
+  
+  @flow
+    - "Signals": Listens to `player_bus.encounter_initiated`.
+    - "Timekeeper": Pauses game when UIs are open (Market/Loot).

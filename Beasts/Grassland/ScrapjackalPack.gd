@@ -8,9 +8,11 @@ const BASE_HEALTH: int = 15
 const BASE_DAMAGE: int = 6
 const BASE_DEFENSE: int = 2
 
-const WANDER_RADIUS: float = 400.0
+const WANDER_RADIUS: float = 1200.0
 const AGGRO_RADIUS: float = 300.0
 const WANDER_WAIT_TIME: float = 3.0
+const RETURN_TICKS: int = 30
+
 
 var home_position: Vector2 = Vector2.ZERO
 var wander_timer: float = 0.0
@@ -18,6 +20,8 @@ var current_target: Node2D = null
 
 enum AIState {WANDERING, CHASING}
 var ai_state: AIState = AIState.WANDERING
+var _wander_tick_count: int = 0
+
 
 func _ready() -> void:
 	super._ready()
@@ -28,6 +32,8 @@ func _ready() -> void:
 
 func _update_ai(delta: float) -> void:
 	wander_timer -= delta
+	# print("AI Tick: %s | State: %s | Timer: %s" % [name, ai_state, wander_timer])
+
 
 	match ai_state:
 		AIState.WANDERING:
@@ -46,7 +52,7 @@ func _ai_wander(_delta: float) -> void:
 		_set_new_wander_target()
 		wander_timer = WANDER_WAIT_TIME
 
-	_move_toward_nav_target()
+	update_movement(_delta)
 
 func _ai_chase(_delta: float) -> void:
 	if current_target == null or not is_instance_valid(current_target):
@@ -88,14 +94,38 @@ func _find_nearby_enemy() -> Node2D:
 	return null
 
 func _set_new_wander_target() -> void:
-	var random_angle: float = randf_range(0.0, TAU)
-	var random_distance: float = randf_range(100.0, WANDER_RADIUS)
-	var offset: Vector2 = Vector2(cos(random_angle), sin(random_angle)) * random_distance
-	var target_pos: Vector2 = home_position + offset
+	_wander_tick_count += 1
+	var target_pos: Vector2
+	
+	if _wander_tick_count >= RETURN_TICKS:
+		# Return to den logic: Move 100px closer to home
+		_wander_tick_count = 0
+		var direction_to_home = global_position.direction_to(home_position)
+		var distance_to_home = global_position.distance_to(home_position)
+		var move_dist = min(distance_to_home, 100.0)
+		target_pos = global_position + (direction_to_home * move_dist)
+	else:
+		# Normal wander: ensure we don't get closer to home
+		var current_dist = global_position.distance_to(home_position)
+		
+		# Try 10 times to find a valid spot
+		for i in range(10):
+			var random_angle: float = randf_range(0.0, TAU)
+			var random_distance: float = randf_range(50.0, 200.0) # Small hops
+			var offset: Vector2 = Vector2(cos(random_angle), sin(random_angle)) * random_distance
+			var potential_pos = global_position + offset
+			
+			var new_dist = potential_pos.distance_to(home_position)
+			
+			# Condition: Must be within max radius AND not closer than current distance (tolerance 10px)
+			if new_dist <= WANDER_RADIUS and new_dist >= (current_dist - 10.0):
+				target_pos = potential_pos
+				break
+		
+		# Fallback if we couldn't find a perfect spot
+		if target_pos == Vector2.ZERO:
+			var random_angle: float = randf_range(0.0, TAU)
+			var offset: Vector2 = Vector2(cos(random_angle), sin(random_angle)) * 100.0
+			target_pos = global_position + offset
 
 	move_to(target_pos)
-
-func _move_toward_nav_target() -> void:
-	# Deprecated helper, using update_movement directly
-	var delta = get_physics_process_delta_time()
-	update_movement(delta)

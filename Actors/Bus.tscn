@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://c14uenn8n47fb"]
 
 [ext_resource type="Script" uid="uid://b0x2f2osl1knp" path="res://Actors/bus.gd" id="1_us70j"]
-[ext_resource type="Texture2D" uid="uid://dr7wskrxc4eeh" path="res://Actors/Bus_Sprite.png" id="2_newsprite"]
+[ext_resource type="Texture2D" uid="uid://dr7wskrxc4eeh" path="res://art_src/Bus_Sprite.png" id="2_newsprite"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_f7bok"]
 size = Vector2(27, 14)

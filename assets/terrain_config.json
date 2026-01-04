@@ -1,7 +1,7 @@
 {
     "terrain_types": {
         "SAND": {
-            "id": 1,
+            "id": 50,
             "color": [
                 211,
                 125,
@@ -11,7 +11,7 @@
             "description": "Desert/Beach - Slower movement (1.25x)"
         },
         "SAND_DUNE": {
-            "id": 1,
+            "id": 50,
             "color": [
                 215,
                 127,
@@ -21,7 +21,7 @@
             "description": "Sand Variation"
         },
         "SNOW": {
-            "id": 2,
+            "id": 100,
             "color": [
                 243,
                 246,
@@ -31,7 +31,7 @@
             "description": "Deep Snow - Very slow movement (1.5x)"
         },
         "SNOW_SHADOW": {
-            "id": 2,
+            "id": 100,
             "color": [
                 220,
                 225,
@@ -41,7 +41,7 @@
             "description": "Snow in shadow/transition"
         },
         "SNOW_ICE": {
-            "id": 2,
+            "id": 100,
             "color": [
                 216,
                 221,
@@ -51,17 +51,17 @@
             "description": "Ice/Dark Snow"
         },
         "WATER": {
-            "id": 3,
+            "id": 150,
             "color": [
                 30,
                 49,
                 63
             ],
-            "tolerance": 35,
+            "tolerance": 50,
             "description": "Water/Void - Impassable (Solid)"
         },
         "WATER_DEEP": {
-            "id": 3,
+            "id": 150,
             "color": [
                 0,
                 0,
@@ -71,7 +71,7 @@
             "description": "Deep Ocean/Void (Black)"
         },
         "SNOW_DARK": {
-            "id": 2,
+            "id": 100,
             "color": [
                 200,
                 203,
@@ -81,7 +81,7 @@
             "description": "Dark Gray Snow/Ice"
         },
         "WATER_ROCKS": {
-            "id": 3,
+            "id": 150,
             "color": [
                 30,
                 29,
@@ -91,7 +91,7 @@
             "description": "Dark Rocks/Abyss"
         },
         "SNOW_DARKER": {
-            "id": 2,
+            "id": 100,
             "color": [
                 178,
                 181,
@@ -101,7 +101,7 @@
             "description": "Very Dark Snow/Ice"
         },
         "SNOW_DIRTY": {
-            "id": 2,
+            "id": 100,
             "color": [
                 145,
                 146,
@@ -111,7 +111,7 @@
             "description": "Dirty/Rocky Snow"
         },
         "SNOW_GREY": {
-            "id": 2,
+            "id": 100,
             "color": [
                 128,
                 128,
@@ -121,7 +121,7 @@
             "description": "Gray Snow/Rocks"
         },
         "WATER_ABYSS": {
-            "id": 3,
+            "id": 150,
             "color": [
                 20,
                 17,
@@ -131,7 +131,7 @@
             "description": "Deepest Abyss"
         },
         "WATER_CLIFFS": {
-            "id": 3,
+            "id": 150,
             "color": [
                 63,
                 63,
@@ -141,7 +141,7 @@
             "description": "Dark Cliff Walls (Impassable)"
         },
         "WATER_MUD": {
-            "id": 3,
+            "id": 150,
             "color": [
                 58,
                 50,
@@ -151,7 +151,7 @@
             "description": "Dark Mud/Water"
         },
         "WATER_ROCKS_VAR": {
-            "id": 3,
+            "id": 150,
             "color": [
                 85,
                 85,

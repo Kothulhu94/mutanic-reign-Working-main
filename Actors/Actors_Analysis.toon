@@ -1,4 +1,3 @@
-
 @context "Actors & AI Systems Analysis"
 @target_directory "d:\GodoTDev\mutanic-reign-Working-main\Actors"
 
@@ -12,13 +11,16 @@
   @state
     movement: "Point-and-click pathfinding via MapManager"
     inventory: "Delegated to internal CharacterSheet"
-    economy: "Tracks PACs (currency) and trading skills"
-    combat: "Initiates collision-based encounters"
+    economy: "Tracks PACs (currency) and Trading Skill (1 XP per 100 PACs value)"
+    chasing: "Tracks `_chase_target` node. Updates path every 0.2s."
   
-  @interaction
-    - "Chase Target": Pursues Caravans or BeastDens.
-    - "Signals": `encounter_initiated`, `chase_started`.
-    - "Trading XP": Tracks session volume to award RPG skill XP (e.g., `market_analysis`, `economic_dominance`).
+  @signals
+    - `encounter_initiated(attacker, defender)`: Fired when dist < 60.0.
+    - `chase_started()`: Fired when target set.
+  
+  @methods
+    - `move_to(pos)`: Path smoothing + MapManager request.
+    - `award_skill_xp(id, val)`: Passes XP to internal CharacterSheet.
 
 @actor "Caravan"
   type: "AI Trader"
@@ -28,56 +30,60 @@
   extends: "Area2D"
   
   @architecture "Component-Based"
-    - "Navigator": `CaravanNavigator` (Movement)
-    - "Skills": `CaravanSkillSystem` (RPG Stats)
-    - "Trading": `CaravanTradingSystem` (Economy)
+    - "Navigator": `CaravanNavigator` (Movement, Layer Masks).
+    - "Skills": `CaravanSkillSystem` (Speed, Prices).
+    - "Trading": `CaravanTradingSystem` (Logic).
+    - "Data": `CaravanState` (Inventory, Money, Type).
   
   @fsm_states
-    1. "IDLE": Wait at home.
+    1. "IDLE": Wait at home (Garage).
     2. "BUYING_AT_HOME": Purchase surplus goods.
-    3. "TRAVELING": Move to target hub.
-    4. "EVALUATING_TRADE": Check profitability.
+    3. "TRAVELING": Move to target hub (Abstract or Grid).
+    4. "EVALUATING_TRADE": Check profitability at destination.
+       - Logic: If profitable -> SELL. If not -> Find Next Hub. If no options -> RETURN.
     5. "SELLING": Offload goods.
-    6. "RETURNING_HOME": Pay tax and rest.
-
-  @spawning_logic
-    trigger: "Hub surplus > threshold"
-    lifecycle: "Loop between hubs -> Profit -> Return -> Tax -> Repeat"
+    6. "RETURNING_HOME": Pay tax (10%) and restock.
+  
+  @visuals
+    - "Path Line": Shows intended route. Color-coded by Type:
+      - Food: Green
+      - Material: Red
+      - Luxury: Purple
+      - Medicine: Alice Blue
+      - Default: White
+    - "Health Bar": Rotates to stay upright.
+  
+  @signals
+    - `player_initiated_chase(caravan)`: Click detection.
+    - `mission_complete(caravan)`: Trip finished.
 
 @component "CaravanNavigator"
   script: "CaravanNavigator.gd"
   role: "Pathfinding Controller"
-  
-  @methods
-    - "Grid Movement": Uses `MapManager.get_path_world` when on-screen.
-    - "Abstract Movement": Teleports/Linear interpolates when off-screen/OOB to save performance.
-
-@component "CaravanSkillSystem"
-  script: "CaravanSkillSystem.gd"
-  role: "RPG Stat Manager"
-  
-  @bonuses
-    - "Speed": +0.5% per Trading level, +Perks.
-    - "Capacity": +0.5% per Trading level, +Leadership.
-    - "Price": Better buy/sell rates based on `market_monopoly` etc.
+  @features
+    - "Dual Mode": Grid movement (on-screen) vs Abstract linear (off-screen).
+    - "Layers": Supports custom navigation masks (e.g. Water for some types).
 
 @component "CaravanTradingSystem"
   script: "CaravanTradingSystem.gd"
   role: "Economic Logic Core"
-  
   @logic
-    - "Buy": Prioritizes items with preferred tags at home hub.
-    - "Sell": Travels to other hubs, checks price delta > 0.
-    - "Memory": Tracks visited hubs to avoid loops.
+    - `buy_items_at_home()`: Buys items matching preferred tags up to capacity/budget.
+    - `evaluate_trade_at_hub()`: Returns true if profit > 0.
+    - `find_next_destination()`: Intelligent routing avoiding recently visited hubs.
+
+@component "CaravanSkillSystem"
+  script: "CaravanSkillSystem.gd"
+  role: "RPG Stat Manager"
+  @logic
+    - "XP": Awards XP on transaction volume + Trip Completion bonus (>1000 profit).
+    - "Perks": Manages `dense_stockpiling`, `speed` bonuses.
 
 @actor "PlayerCamera"
   type: "Camera Controller"
   scene: "PlayerCamera.tscn"
   script: "player_camera.gd"
   class_name: "PlayerCamera" 
-  
   @features
-    - "Follow": Locks to `Bus.tscn` instance.
-    - "Pan": MMB drag or WASD keys.
-    - "Zoom": Dynamic clamping based on viewport size.
-    - "Snap": Smoothly returns to player when moving.
+    - "Follow": Locks to `Bus.tscn`.
+    - "Controls": MMB Drag, WASD Pan, Scroll Zoom.

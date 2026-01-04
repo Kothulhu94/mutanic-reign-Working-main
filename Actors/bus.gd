@@ -19,7 +19,7 @@ var inventory: Dictionary:
 var pacs: int = 1000
 var _health_visual: Control
 var _chase_target: Node2D = null
-const ENCOUNTER_DISTANCE: float = 60.0
+const ENCOUNTER_DISTANCE: float = 120.0
 var _repath_timer: float = 0.0
 const REPATH_INTERVAL: float = 0.2
 
@@ -82,7 +82,11 @@ func _ready() -> void:
 			timekeeper.resumed.connect(_on_timekeeper_resumed)
 			
 	if map_manager == null:
-		push_warning("Bus: MapManager not assigned on startup. Waiting for injection...")
+		map_manager = get_tree().get_first_node_in_group("MapManager")
+		if map_manager == null:
+			push_warning("Bus: MapManager not assigned on startup. Waiting for injection...")
+		else:
+			print("Bus: MapManager found via group lookup.")
 
 func move_to(target_pos: Vector2):
 	if map_manager == null:

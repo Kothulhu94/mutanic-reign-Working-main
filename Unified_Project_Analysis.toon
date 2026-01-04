@@ -1,0 +1,250 @@
+@context "UNIFIED PROJECT MASTER FILE"
+@description "Complete synthesis of all project analysis files. Do not modify this file directly; update specific component TOON files instead and regenerate this verification artifact."
+@generated_at "2026-01-04"
+
+# ==============================================================================
+# SUMMARY & ARCHITECTURE (from Comprehensive_Project_Analysis.toon)
+# ==============================================================================
+
+@core_infrastructure "Foundation & Tooling"
+  @singletons
+    - `Timekeeper`: Global 10Hz clock. Broadcasts `step` signals. Handles Pause/Resume.
+    - `SaveManager`: Master persistence engine. Destructive loading (wipes caravans before re-instantiating).
+    - `SceneLoader`: Transition manager for async scene switching.
+    - `TroopDatabase` (Node): Singleton catalog of all `TroopType` resources.
+    - `Skills` (Autoload): Wrapper for `SkillDatabase` resource.
+  @input_handling
+    - `Bus.gd`: Player Avatar. Uses `MapManager` for point-and-click traversal.
+    - `PlayerCamera.gd`: RTS-style camera controls (Pan/Zoom/Follow).
+  @navigation_stack
+    - `MapManager`: Modular Pathfinder.
+      - *Architecture*: Multi-layer `AStarGrid2D` (Land/Water).
+      - *Helpers*: `BoundaryCalculator` (Chunk exits), `GridMasker` (Shapes), `TerrainSynchronizer` (Pixel-to-Weight).
+
+@world_systems "Simulation Layers"
+  @settlements "Hub Architecture"
+    - `Hub.gd`: Central Coordinator. Uses Dependency Injection for components.
+      - **Economy**: `HubEconomyManager` + `HubEconomy` (Stateless Engine).
+      - **Trade**: `HubTradingSystem`. Uses EMA-based Pricing (`Base * Clamp(Demand/Supply)`).
+      - **Military**: `HubTroopProduction`. Spawns T1->Elite units. Pop Cap penalties.
+      - **Layout**: `HubBuildingManager` + `BuildSlots`. 3x3 Grid.
+    - **Fleet Management ("The Garage")**:
+      - `request_trade_run`: Allocates task to 1. Specialist, 2. Warm Body, 3. New Spawn.
+      - `idle_fleet`: Pool of waiting caravans.
+
+  @economy_engine "Resource Simulation"
+    - **Pipeline**: Producers (Create) -> Processors (Convert) -> Consumption (Sink).
+    - **Math**: Geometric scaling (1.5x Power/Cost per Level).
+
+@entities "Living World"
+  @caravans "AI Traders"
+    - **FSM**: `IDLE` -> `BUYING_AT_HOME` -> `TRAVELING` -> `EVALUATING` -> `SELLING` -> `RETURNING`.
+  @beasts "Polymorphic Enemies"
+    - **Biomes**: Grassland, Forest, Lake, Mesa.
+  @rpg_system "Progression"
+    - **Core**: `CharacterSheet` (Stats, Inv, Troops).
+    - **Skills**: Actions grant XP. Perks unlock mechanics.
+
+# ==============================================================================
+# CORE INFRASTRUCTURE (Singletons, Autoloads, Root Scripts)
+# ==============================================================================
+
+@singleton "Timekeeper"
+  script: "Timekeeper.gd"
+  role: "Central Clock"
+  @config
+    - `TICK_RATE`: 10.0 Hz (1 tick = 0.1s).
+  @api
+    - `tick(step)`: Emitted 10 times per second.
+    - `pause()` / `resume()`: Stops tick emission.
+
+@singleton "SaveManager"
+  script: "SaveManager.gd"
+  role: "Persistence"
+  @logic
+    - "Scope": Player, Caravans, Hubs.
+    - "Caravan Reconstruction": Deletes ALL caravans on load, then re-instantiates to prevent duplicates.
+    - "Health Re-init": Explicitly reconnects health bar signals after load.
+
+@autoload "Skills"
+  script: "Skills.gd"
+  role: "Skill System Access"
+  @config
+    - Loads `res://data/SkillDatabase.tres`.
+
+@script "combat.gd"
+  role: "Combat Logic Engine"
+  @features
+    - "Resolution": Turn-based exchange (`resolve_combat_round`).
+    - "Mechanics": `Atk_Roll` (10 + Stat + rand) vs `Def_Roll`. Damage = diff.
+    - "Casualties": >67% HP (10%), >34% HP (40%), Low HP (75%).
+
+@script "battle.gd"
+  role: "3D Battle Scene Placeholder"
+  @features
+    - Returns to Overworld via `SceneLoader.goto_overworld()` on 'confirm'.
+
+# ==============================================================================
+# WORLD & NAVIGATION (Overworld, MapManager)
+# ==============================================================================
+
+@scene "overworld.tscn"
+  @root "Overworld"
+    script: "Overworld.gd"
+  @systems
+    - "MapLoader": Instantiates MapLoader.
+    - "CaravanManager": Spawns caravans based on garage system logic.
+    - "OverworldUIManager": Manages active screens.
+
+@system "MapManager"
+  script: "MapManager.gd"
+  role: "Navigation Orchestrator"
+  @architecture "Modular/Refactored"
+    - "Core": Manages active AStarGrid2D instances via `active_grids`.
+    - "Helpers":
+      - `BoundaryCalculator`: Handles exit/entry math for abstract movement.
+      - `GridMasker`: Applies circular/square/plus shapes.
+      - `TerrainSynchronizer`: Syncs terrain IDs (Grass, Sand, Snow, Water) to weights.
+  @layers
+    - `LAYER_LAND` (1): Blocked by Water.
+    - `LAYER_WATER` (2): Walkable on Water.
+
+# ==============================================================================
+# SIMULATION & ECONOMY (Hubs, Buildings, Engine)
+# ==============================================================================
+
+@system "Hub"
+  script: "Hub.gd"
+  @architecture "Component Injection"
+    - `HubEconomyManager`: Tick loop wrapper.
+    - `HubTradingSystem`: Pricing/Trade API.
+    - `HubTroopProduction`: Unit spawning.
+  @fleet_management "The Garage"
+    - `fleet`: All registered caravans.
+    - `idle_fleet`: Caravans waiting for work.
+
+@engine "HubEconomy"
+  script: "HubEconomy.gd"
+  role: "Stateless Logic Core"
+  @pipeline
+    1. **Producers**: `produce_tick`.
+    2. **Processors**: `refine_tick`.
+    3. **Consumption**: Food (1/10 Pops), Infra (Maint/Level), Medical, Luxury.
+
+@base_class "ProducerBuilding"
+  script: "ProducerBuilding.gd"
+  @logic
+    - "Output": `base_amount * pow(1.5, level-1) * (1 + bonus)`.
+@base_class "ProcessorBuilding"
+  script: "ProcessorBuilding.gd"
+  @logic
+    - "Strategy": Selects inputs via `first_match`, `highest_stock`, or `lowest_price`.
+
+# ==============================================================================
+# ENTITIES & RPG (Actors, Characters, Beasts)
+# ==============================================================================
+
+@actor "Bus"
+  script: "bus.gd"
+  @state
+    movement: "Point-and-click via MapManager".
+    chasing: "Tracks `_chase_target` node".
+
+@actor "Caravan"
+  script: "Caravan.gd"
+  @architecture "Component-Based"
+    - `CaravanNavigator`, `CaravanSkillSystem`, `CaravanTradingSystem`.
+  @fsm_states
+    - `IDLE`, `BUYING_AT_HOME`, `TRAVELING`, `EVALUATING_TRADE`, `SELLING`, `RETURNING_HOME`.
+
+@rpg_system "Character Core"
+  @sheet "CharacterSheet"
+    - "Contents": Stats, Inventory, Equipment, Skills.
+    - "Math": `get_effective_health()` sums Base+Attribs+Troops+Perks.
+
+@beast_system "Bestiary"
+  @base "Beast.gd"
+    - Uses `MapManager.get_path_world()`.
+  
+  @biome "Grassland"
+    - `Scrapjackal Pack` (T1): Pack Scavenger.
+    - `Windrunner Antelope` (T2): Speed.
+    - `Titan Bison` (T3): Hauler.
+  
+  @biome "Forest"
+    - `Thornback Boar` (T1): Forager.
+    - `Myco Stag` (T2): Curative Scout.
+    - `Canopy Panther` (T3): Ambush Predator.
+
+  @biome "Lake"
+    - `Glassfin Swarm` (T1): Scavenger.
+    - `Mudback Snapper` (T2): Amphibious Tank.
+    - `Ripple Leviathan` (T3): Water Boss.
+
+  @biome "Mesa"
+    - `Basalt Scuttlers` (T1): Mineral Scout.
+    - `Sunspine Ram` (T2): Climber.
+    - `Cinder Vulture` (T3): Aerial Patrol.
+
+# ==============================================================================
+# DATA LAYER (Items, Troops, Resources)
+# ==============================================================================
+
+@resource "ItemDB"
+  script: "data/Items/ItemDB.gd"
+  role: "Item Catalog"
+  @structure
+    - `items`: Dictionary { StringName(id) -> ItemDef }.
+
+@resource "TroopDatabase"
+  script: "data/TroopDatabase.gd"
+  role: "Military Catalog"
+  @structure
+    - `troops`: Dictionary { StringName(id) -> TroopType }.
+    - `get_upgrade_target(id)`: Logic to find next tier.
+
+@resource "HubStates"
+  role: "Settlement Persistence"
+  @state
+    - `inventory`, `troop_stock`, `pacs`, `slots`, `governor_id`.
+
+# ==============================================================================
+# INTERFACE (UI)
+# ==============================================================================
+
+@screen "MarketUI"
+  script: "MarketUI.gd"
+  role: "Trading Interface"
+  @logic
+    - "Duality": Handles transactions between Player<->Hub AND Player<->Caravan.
+    - "XP": Awards 1 XP/pac spent, 2 XP/pac earned.
+
+@screen "RecruitmentUI"
+  script: "RecruitmentUI.gd"
+  role: "Troop Hiring"
+  @logic
+    - "Capacity": Caps recruitment based on `CharacterSheet.max_troop_capacity`.
+
+@screen "EncounterUI"
+  script: "EncounterUI.gd"
+  role: "Combat Flow"
+  @state
+    - `_tick_counter`: 5 Timekeeper ticks per combat round.
+
+# ==============================================================================
+# DOCUMENTATION & QA
+# ==============================================================================
+
+@doc "CaravanTradeCycle_v2.md"
+  role: "Architecture Specification"
+  @content
+    - "The Garage System": Lifecycle of reusable caravans.
+    - "Allocation": Specialist -> Warm Body -> New Hire.
+    - "Return": Dump cargo, Pay tax, Clock Out.
+
+@test_suite "Skill System Tests"
+  script: "tests/test_new_skill_system.gd"
+  role: "Manual Logic Verification"
+  @coverage
+    - Progression (Linear curve).
+    - Perks (Points/Prereqs).

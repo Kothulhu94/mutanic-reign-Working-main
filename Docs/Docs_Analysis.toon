@@ -1,0 +1,21 @@
+@context "Project Documentation"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Docs"
+
+@doc "CaravanTradeCycle_v2.md"
+  role: "Architecture Specification"
+  @content
+    - "The Garage System": Lifecycle of reusable caravans.
+    - "Allocation logic": 
+      1. Specialist (Matching type).
+      2. Warm Body (Any idle).
+      3. New Hire (Spawn).
+    - "Purchasing Logic":
+      - Phase 1: Mission Priority.
+      - Phase 2: Opportunity Buying (Global Market Check > 110% sell price).
+    - "Return Protocol":
+      - Dump unsold cargo (with 5m cooldown).
+      - Pay 10% tax.
+      - Clock Out (Visible = False, enter `idle_fleet`).
+
+@status "Truth Source"
+  - This document reflects the *intended* and largely *implemented* behavior in `Hub.gd` and `Caravan.gd`.

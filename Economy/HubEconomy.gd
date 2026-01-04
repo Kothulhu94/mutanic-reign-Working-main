@@ -150,67 +150,152 @@ func _accum(dst: Dictionary, id: StringName, amt: float) -> void:
 # Food Consumption (cadence + one-tick eat)
 # ============================================================
 func _update_consumption(dt: float, cap: int, working: Dictionary) -> Dictionary:
-	_hunger_timer_accum += dt
-	var total: Dictionary = {}
-	while _hunger_timer_accum >= config.servings_tick_interval:
-		_hunger_timer_accum -= config.servings_tick_interval
-		var d: Dictionary = _consume_one_servings_tick(cap, working)
-		InventoryUtil.merge_delta(total, d)
-		for k in d.keys():
-			var id: StringName = (k if k is StringName else StringName(str(k)))
-			working[id] = float(working.get(id, 0.0)) + float(d[k])
-	return total
+	if item_db == null: return {}
+	var needed: float = (float(cap) / 10.0) * config.servings_per_10_pops
+	var tiers: Array = [
+		{tag = &"meal", cost = config.cost_units_meal},
+		{tag = &"processed", cost = config.cost_units_processed},
+		{tag = StringName(), cost = config.cost_units_ingredient}
+	]
+	var res: Dictionary = _process_consumption_category(dt, _hunger_timer_accum, config.servings_tick_interval, needed, &"food", tiers, working)
+	_hunger_timer_accum = res.new_timer
+	return res.delta
 
-func _consume_one_servings_tick(cap: int, working: Dictionary) -> Dictionary:
-	var out: Dictionary = {}
-	if item_db == null:
-		return out
+func _compute_food_level_snapshot(cap: int, working: Dictionary) -> float:
+	if item_db == null: return 0.0
+	var need: float = (float(cap) / 10.0) * config.servings_per_10_pops
+	var tiers: Array = [
+		{tag = &"meal", cost = config.cost_units_meal},
+		{tag = &"processed", cost = config.cost_units_processed},
+		{tag = StringName(), cost = config.cost_units_ingredient}
+	]
+	var have: float = _generic_units_available(working, &"food", tiers)
+	return have - need
 
-	var servings_needed: float = (float(cap) / 10.0) * config.servings_per_10_pops
-	if servings_needed <= 0.0:
-		return out
+func _servings_available_in(working: Dictionary) -> float:
+	var tiers: Array = [
+		{tag = &"meal", cost = config.cost_units_meal},
+		{tag = &"processed", cost = config.cost_units_processed},
+		{tag = StringName(), cost = config.cost_units_ingredient}
+	]
+	return _generic_units_available(working, &"food", tiers)
 
-	var meal_items: Array[StringName] = []
-	var processed_items: Array[StringName] = []
-	var ingredient_items: Array[StringName] = []
+# ============================================================
+# Infrastructure Consumption (cadence + one-tick consume)
+# ============================================================
+func _update_infrastructure_consumption(dt: float, buildings: Array[Node], working: Dictionary) -> Dictionary:
+	if item_db == null: return {}
+	var needed: float = _compute_infrastructure_units_needed(buildings)
+	var tiers: Array = [
+		{tag = &"component", cost = config.infra_cost_component},
+		{tag = &"processed", cost = config.infra_cost_processed},
+		{tag = StringName(), cost = config.infra_cost_ingredient}
+	]
+	var res: Dictionary = _process_consumption_category(dt, _infra_timer_accum, config.infra_tick_interval, needed, &"material", tiers, working)
+	_infra_timer_accum = res.new_timer
+	return res.delta
 
-	for k in working.keys():
-		var id: StringName = (k if k is StringName else StringName(str(k)))
-		var units: float = float(working.get(k, 0.0))
-		if units <= 0.0:
-			continue
-		if not item_db.has_tag(id, &"food"):
-			continue
-		if item_db.has_tag(id, &"meal"):
-			meal_items.append(id)
-		elif item_db.has_tag(id, &"processed"):
-			processed_items.append(id)
-		else:
-			ingredient_items.append(id)
+func _compute_infrastructure_units_needed(buildings: Array[Node]) -> float:
+	var total_building_levels: int = 0
+	for n: Node in buildings:
+		var lv_any = n.get("level")
+		if lv_any is int:
+			total_building_levels += int(lv_any)
+	var need: float = config.infra_units_per_hub + (config.infra_units_per_building_level * float(total_building_levels))
+	return need
 
-	var remain_servings: float = servings_needed
+func _compute_infrastructure_level_snapshot(buildings: Array[Node], working: Dictionary) -> float:
+	if item_db == null: return 0.0
+	var need: float = _compute_infrastructure_units_needed(buildings)
+	var tiers: Array = [
+		{tag = &"component", cost = config.infra_cost_component},
+		{tag = &"processed", cost = config.infra_cost_processed},
+		{tag = StringName(), cost = config.infra_cost_ingredient}
+	]
+	var have: float = _generic_units_available(working, &"material", tiers)
+	return have - need
 
-	if remain_servings > 0.0 and meal_items.size() > 0:
-		var units_meal: float = remain_servings * config.cost_units_meal
-		var d_meal: Dictionary = _consume_units_from_items(meal_items, units_meal, working)
-		InventoryUtil.merge_delta(out, d_meal)
-		remain_servings -= _units_to_servings_taken(d_meal, config.cost_units_meal)
+func _infrastructure_units_available_in(working: Dictionary) -> float:
+	var tiers: Array = [
+		{tag = &"component", cost = config.infra_cost_component},
+		{tag = &"processed", cost = config.infra_cost_processed},
+		{tag = StringName(), cost = config.infra_cost_ingredient}
+	]
+	return _generic_units_available(working, &"material", tiers)
 
-	if remain_servings > 0.0 and processed_items.size() > 0:
-		var units_proc: float = remain_servings * config.cost_units_processed
-		var d_proc: Dictionary = _consume_units_from_items(processed_items, units_proc, working)
-		InventoryUtil.merge_delta(out, d_proc)
-		remain_servings -= _units_to_servings_taken(d_proc, config.cost_units_processed)
+# ============================================================
+# Medical Consumption (cadence + one-tick consume)
+# ============================================================
+func _update_medical_consumption(dt: float, cap: int, working: Dictionary) -> Dictionary:
+	if item_db == null: return {}
+	var needed: float = (float(cap) / 10.0) * config.medical_units_per_10_pops
+	var tiers: Array = [
+		{tag = &"medicine", cost = config.medical_cost_medicine},
+		{tag = &"processed", cost = config.medical_cost_processed},
+		{tag = StringName(), cost = config.medical_cost_ingredient}
+	]
+	var res: Dictionary = _process_consumption_category(dt, _medical_timer_accum, config.medical_tick_interval, needed, &"medical", tiers, working)
+	_medical_timer_accum = res.new_timer
+	return res.delta
 
-	if remain_servings > 0.0 and ingredient_items.size() > 0:
-		var units_ing: float = remain_servings * config.cost_units_ingredient
-		var d_ing: Dictionary = _consume_units_from_items(ingredient_items, units_ing, working)
-		InventoryUtil.merge_delta(out, d_ing)
-		remain_servings -= _units_to_servings_taken(d_ing, config.cost_units_ingredient)
+func _compute_medical_level_snapshot(cap: int, working: Dictionary) -> float:
+	if item_db == null: return 0.0
+	var need: float = (float(cap) / 10.0) * config.medical_units_per_10_pops
+	var tiers: Array = [
+		{tag = &"medicine", cost = config.medical_cost_medicine},
+		{tag = &"processed", cost = config.medical_cost_processed},
+		{tag = StringName(), cost = config.medical_cost_ingredient}
+	]
+	var have: float = _generic_units_available(working, &"medical", tiers)
+	return have - need
 
-	return out
+func _medical_units_available_in(working: Dictionary) -> float:
+	var tiers: Array = [
+		{tag = &"medicine", cost = config.medical_cost_medicine},
+		{tag = &"processed", cost = config.medical_cost_processed},
+		{tag = StringName(), cost = config.medical_cost_ingredient}
+	]
+	return _generic_units_available(working, &"medical", tiers)
 
-func _consume_units_from_items(items: Array[StringName], units_needed: float, working: Dictionary) -> Dictionary:
+# ============================================================
+# Luxury Consumption (cadence + one-tick consume)
+# ============================================================
+func _update_luxury_consumption(dt: float, cap: int, working: Dictionary) -> Dictionary:
+	if item_db == null: return {}
+	var needed: float = (float(cap) / 10.0) * config.luxury_units_per_10_pops
+	var tiers: Array = [
+		{tag = &"luxury_good", cost = config.luxury_cost_luxury_good},
+		{tag = &"processed", cost = config.luxury_cost_processed},
+		{tag = StringName(), cost = config.luxury_cost_ingredient}
+	]
+	var res: Dictionary = _process_consumption_category(dt, _luxury_timer_accum, config.luxury_tick_interval, needed, &"luxury", tiers, working)
+	_luxury_timer_accum = res.new_timer
+	return res.delta
+
+func _compute_luxury_level_snapshot(cap: int, working: Dictionary) -> float:
+	if item_db == null: return 0.0
+	var need: float = (float(cap) / 10.0) * config.luxury_units_per_10_pops
+	var tiers: Array = [
+		{tag = &"luxury_good", cost = config.luxury_cost_luxury_good},
+		{tag = &"processed", cost = config.luxury_cost_processed},
+		{tag = StringName(), cost = config.luxury_cost_ingredient}
+	]
+	var have: float = _generic_units_available(working, &"luxury", tiers)
+	return have - need
+
+func _luxury_units_available_in(working: Dictionary) -> float:
+	var tiers: Array = [
+		{tag = &"luxury_good", cost = config.luxury_cost_luxury_good},
+		{tag = &"processed", cost = config.luxury_cost_processed},
+		{tag = StringName(), cost = config.luxury_cost_ingredient}
+	]
+	return _generic_units_available(working, &"luxury", tiers)
+
+# ============================================================
+# GENERIC HELPERS
+# ============================================================
+
+func _consume_units_from_items(items: Array, units_needed: float, working: Dictionary) -> Dictionary:
 	var d: Dictionary = {}
 	var remain: float = units_needed
 	for id: StringName in items:
@@ -224,350 +309,75 @@ func _consume_units_from_items(items: Array[StringName], units_needed: float, wo
 		remain -= take
 	return d
 
-# ------------------------------------------------------------
-# Food-level snapshot (servings)
-# ------------------------------------------------------------
-func _compute_food_level_snapshot(cap: int, working: Dictionary) -> float:
-	if item_db == null:
-		return 0.0
-	var need: float = (float(cap) / 10.0) * config.servings_per_10_pops
-	var have: float = _servings_available_in(working)
-	return have - need
+func _process_consumption_category(dt: float, timer: float, interval: float, needed: float, main_tag: StringName, tiers: Array, working: Dictionary) -> Dictionary:
+	timer += dt
+	var total_delta: Dictionary = {}
+	
+	while timer >= interval:
+		timer -= interval
+		if needed > 0.0:
+			var d: Dictionary = _consume_generic_tick(needed, main_tag, tiers, working)
+			InventoryUtil.merge_delta(total_delta, d)
+			# Apply immediately to working so next tick sees updated stock
+			for k in d.keys():
+				var id: StringName = (k if k is StringName else StringName(str(k)))
+				working[id] = float(working.get(id, 0.0)) + float(d[k])
+				
+	return {"delta": total_delta, "new_timer": timer}
 
-func _servings_available_in(working: Dictionary) -> float:
-	if item_db == null:
-		return 0.0
-	var servings: float = 0.0
-	for k in working.keys():
-		var id: StringName = (k if k is StringName else StringName(str(k)))
-		var units: float = float(working.get(k, 0.0))
-		if units <= 0.0:
-			continue
-		if not item_db.has_tag(id, &"food"):
-			continue
-		if item_db.has_tag(id, &"meal"):
-			servings += units / max(0.0001, config.cost_units_meal)
-		elif item_db.has_tag(id, &"processed"):
-			servings += units / max(0.0001, config.cost_units_processed)
-		else:
-			servings += units / max(0.0001, config.cost_units_ingredient)
-	return servings
-
-func _units_to_servings_taken(d: Dictionary, units_per_serving: float) -> float:
-	var units_total: float = 0.0
-	for v in d.values():
-		if float(v) < 0.0:
-			units_total += -float(v)
-	return units_total / max(0.0001, units_per_serving)
-
-# ============================================================
-# Infrastructure Consumption (cadence + one-tick consume)
-# ============================================================
-func _update_infrastructure_consumption(dt: float, buildings: Array[Node], working: Dictionary) -> Dictionary:
-	_infra_timer_accum += dt
-	var total: Dictionary = {}
-	while _infra_timer_accum >= config.infra_tick_interval:
-		_infra_timer_accum -= config.infra_tick_interval
-		var d: Dictionary = _consume_one_infrastructure_tick(buildings, working)
-		InventoryUtil.merge_delta(total, d)
-		for k in d.keys():
-			var id: StringName = (k if k is StringName else StringName(str(k)))
-			working[id] = float(working.get(id, 0.0)) + float(d[k])
-	return total
-
-func _consume_one_infrastructure_tick(buildings: Array[Node], working: Dictionary) -> Dictionary:
+func _consume_generic_tick(units_needed: float, main_tag: StringName, tiers: Array, working: Dictionary) -> Dictionary:
 	var out: Dictionary = {}
-	if item_db == null:
-		return out
-
-	var units_needed: float = _compute_infrastructure_units_needed(buildings)
-	if units_needed <= 0.0:
-		return out
-
-	var component_items: Array[StringName] = []
-	var processed_items: Array[StringName] = []
-	var ingredient_items: Array[StringName] = []
-
+	
+	# Classify items into tiers
+	var buckets: Array = []
+	buckets.resize(tiers.size())
+	for i in range(buckets.size()): buckets[i] = []
+	
 	for k in working.keys():
 		var id: StringName = (k if k is StringName else StringName(str(k)))
 		var units: float = float(working.get(k, 0.0))
-		if units <= 0.0:
-			continue
-		if not item_db.has_tag(id, &"material"):
-			continue
-		if item_db.has_tag(id, &"component"):
-			component_items.append(id)
-		elif item_db.has_tag(id, &"processed"):
-			processed_items.append(id)
-		else:
-			ingredient_items.append(id)
+		if units <= 0.0: continue
+		if not item_db.has_tag(id, main_tag): continue
+		
+		# Assign to first matching tier
+		for i in range(tiers.size()):
+			var t_tag: StringName = tiers[i].tag
+			# Empty tag acts as "else" / catch-all
+			if t_tag == StringName() or item_db.has_tag(id, t_tag):
+				buckets[i].append(id)
+				break
 
-	var remain_units: float = units_needed
-
-	# Component → Processed → Ingredient
-	if remain_units > 0.0 and component_items.size() > 0:
-		var units_comp: float = remain_units * config.infra_cost_component
-		var d_comp: Dictionary = _consume_units_from_items(component_items, units_comp, working)
-		InventoryUtil.merge_delta(out, d_comp)
-		remain_units -= _units_to_infrastructure_taken(d_comp, config.infra_cost_component)
-
-	if remain_units > 0.0 and processed_items.size() > 0:
-		var units_proc: float = remain_units * config.infra_cost_processed
-		var d_proc: Dictionary = _consume_units_from_items(processed_items, units_proc, working)
-		InventoryUtil.merge_delta(out, d_proc)
-		remain_units -= _units_to_infrastructure_taken(d_proc, config.infra_cost_processed)
-
-	if remain_units > 0.0 and ingredient_items.size() > 0:
-		var units_ing: float = remain_units * config.infra_cost_ingredient
-		var d_ing: Dictionary = _consume_units_from_items(ingredient_items, units_ing, working)
-		InventoryUtil.merge_delta(out, d_ing)
-		remain_units -= _units_to_infrastructure_taken(d_ing, config.infra_cost_ingredient)
-
+	var remain: float = units_needed
+	for i in range(tiers.size()):
+		if remain <= 0.0: break
+		var items: Array = buckets[i]
+		if items.size() > 0:
+			var cost: float = tiers[i].cost
+			var units_for_tier: float = remain * cost
+			var d_tier: Dictionary = _consume_units_from_items(items, units_for_tier, working)
+			InventoryUtil.merge_delta(out, d_tier)
+			
+			# Calc taken
+			var taken_units: float = 0.0
+			for v in d_tier.values():
+				if v < 0: taken_units += -float(v)
+			remain -= taken_units / max(0.0001, cost)
+			
 	return out
 
-func _compute_infrastructure_units_needed(buildings: Array[Node]) -> float:
-	var total_building_levels: int = 0
-	for n: Node in buildings:
-		var lv_any = n.get("level")
-		if lv_any is int:
-			total_building_levels += int(lv_any)
-	var need: float = config.infra_units_per_hub + (config.infra_units_per_building_level * float(total_building_levels))
-	return need
-
-# ------------------------------------------------------------
-# Infrastructure-level snapshot (units)
-# ------------------------------------------------------------
-func _compute_infrastructure_level_snapshot(buildings: Array[Node], working: Dictionary) -> float:
-	if item_db == null:
-		return 0.0
-	var need: float = _compute_infrastructure_units_needed(buildings)
-	var have: float = _infrastructure_units_available_in(working)
-	return have - need
-
-func _infrastructure_units_available_in(working: Dictionary) -> float:
-	if item_db == null:
-		return 0.0
-	var units: float = 0.0
-	for k in working.keys():
-		var id: StringName = (k if k is StringName else StringName(str(k)))
-		var amount: float = float(working.get(k, 0.0))
-		if amount <= 0.0:
-			continue
-		if not item_db.has_tag(id, &"material"):
-			continue
-		if item_db.has_tag(id, &"component"):
-			units += amount / max(0.0001, config.infra_cost_component)
-		elif item_db.has_tag(id, &"processed"):
-			units += amount / max(0.0001, config.infra_cost_processed)
-		else:
-			units += amount / max(0.0001, config.infra_cost_ingredient)
-	return units
-
-func _units_to_infrastructure_taken(d: Dictionary, units_per_point: float) -> float:
-	var units_total: float = 0.0
-	for v in d.values():
-		if float(v) < 0.0:
-			units_total += -float(v)
-	return units_total / max(0.0001, units_per_point)
-
-# ============================================================
-# Medical Consumption (cadence + one-tick consume)
-# ============================================================
-func _update_medical_consumption(dt: float, cap: int, working: Dictionary) -> Dictionary:
-	_medical_timer_accum += dt
-	var total: Dictionary = {}
-	while _medical_timer_accum >= config.medical_tick_interval:
-		_medical_timer_accum -= config.medical_tick_interval
-		var d: Dictionary = _consume_one_medical_tick(cap, working)
-		InventoryUtil.merge_delta(total, d)
-		for k in d.keys():
-			var id: StringName = (k if k is StringName else StringName(str(k)))
-			working[id] = float(working.get(id, 0.0)) + float(d[k])
-	return total
-
-func _consume_one_medical_tick(cap: int, working: Dictionary) -> Dictionary:
-	var out: Dictionary = {}
-	if item_db == null:
-		return out
-
-	var units_needed: float = (float(cap) / 10.0) * config.medical_units_per_10_pops
-	if units_needed <= 0.0:
-		return out
-
-	var medicine_items: Array[StringName] = []
-	var processed_items: Array[StringName] = []
-	var ingredient_items: Array[StringName] = []
-
+func _generic_units_available(working: Dictionary, main_tag: StringName, tiers: Array) -> float:
+	if item_db == null: return 0.0
+	var total: float = 0.0
+	
 	for k in working.keys():
 		var id: StringName = (k if k is StringName else StringName(str(k)))
 		var units: float = float(working.get(k, 0.0))
-		if units <= 0.0:
-			continue
-		if not item_db.has_tag(id, &"medical"):
-			continue
-		if item_db.has_tag(id, &"medicine"):
-			medicine_items.append(id)
-		elif item_db.has_tag(id, &"processed"):
-			processed_items.append(id)
-		else:
-			ingredient_items.append(id)
-
-	var remain_units: float = units_needed
-
-	# Medicine → Processed → Ingredient
-	if remain_units > 0.0 and medicine_items.size() > 0:
-		var units_med: float = remain_units * config.medical_cost_medicine
-		var d_med: Dictionary = _consume_units_from_items(medicine_items, units_med, working)
-		InventoryUtil.merge_delta(out, d_med)
-		remain_units -= _units_to_medical_taken(d_med, config.medical_cost_medicine)
-
-	if remain_units > 0.0 and processed_items.size() > 0:
-		var units_proc: float = remain_units * config.medical_cost_processed
-		var d_proc: Dictionary = _consume_units_from_items(processed_items, units_proc, working)
-		InventoryUtil.merge_delta(out, d_proc)
-		remain_units -= _units_to_medical_taken(d_proc, config.medical_cost_processed)
-
-	if remain_units > 0.0 and ingredient_items.size() > 0:
-		var units_ing: float = remain_units * config.medical_cost_ingredient
-		var d_ing: Dictionary = _consume_units_from_items(ingredient_items, units_ing, working)
-		InventoryUtil.merge_delta(out, d_ing)
-		remain_units -= _units_to_medical_taken(d_ing, config.medical_cost_ingredient)
-
-	return out
-
-# ------------------------------------------------------------
-# Medical-level snapshot (units)
-# ------------------------------------------------------------
-func _compute_medical_level_snapshot(cap: int, working: Dictionary) -> float:
-	if item_db == null:
-		return 0.0
-	var need: float = (float(cap) / 10.0) * config.medical_units_per_10_pops
-	var have: float = _medical_units_available_in(working)
-	return have - need
-
-func _medical_units_available_in(working: Dictionary) -> float:
-	if item_db == null:
-		return 0.0
-	var units: float = 0.0
-	for k in working.keys():
-		var id: StringName = (k if k is StringName else StringName(str(k)))
-		var amount: float = float(working.get(k, 0.0))
-		if amount <= 0.0:
-			continue
-		if not item_db.has_tag(id, &"medical"):
-			continue
-		if item_db.has_tag(id, &"medicine"):
-			units += amount / max(0.0001, config.medical_cost_medicine)
-		elif item_db.has_tag(id, &"processed"):
-			units += amount / max(0.0001, config.medical_cost_processed)
-		else:
-			units += amount / max(0.0001, config.medical_cost_ingredient)
-	return units
-
-func _units_to_medical_taken(d: Dictionary, units_per_point: float) -> float:
-	var units_total: float = 0.0
-	for v in d.values():
-		if float(v) < 0.0:
-			units_total += -float(v)
-	return units_total / max(0.0001, units_per_point)
-
-# ============================================================
-# Luxury Consumption (cadence + one-tick consume)
-# ============================================================
-func _update_luxury_consumption(dt: float, cap: int, working: Dictionary) -> Dictionary:
-	_luxury_timer_accum += dt
-	var total: Dictionary = {}
-	while _luxury_timer_accum >= config.luxury_tick_interval:
-		_luxury_timer_accum -= config.luxury_tick_interval
-		var d: Dictionary = _consume_one_luxury_tick(cap, working)
-		InventoryUtil.merge_delta(total, d)
-		for k in d.keys():
-			var id: StringName = (k if k is StringName else StringName(str(k)))
-			working[id] = float(working.get(id, 0.0)) + float(d[k])
+		if units <= 0.0: continue
+		if not item_db.has_tag(id, main_tag): continue
+		
+		for i in range(tiers.size()):
+			var t_tag: StringName = tiers[i].tag
+			if t_tag == StringName() or item_db.has_tag(id, t_tag):
+				total += units / max(0.0001, tiers[i].cost)
+				break
 	return total
-
-func _consume_one_luxury_tick(cap: int, working: Dictionary) -> Dictionary:
-	var out: Dictionary = {}
-	if item_db == null:
-		return out
-
-	var units_needed: float = (float(cap) / 10.0) * config.luxury_units_per_10_pops
-	if units_needed <= 0.0:
-		return out
-
-	var luxury_good_items: Array[StringName] = []
-	var processed_items: Array[StringName] = []
-	var ingredient_items: Array[StringName] = []
-
-	for k in working.keys():
-		var id: StringName = (k if k is StringName else StringName(str(k)))
-		var units: float = float(working.get(k, 0.0))
-		if units <= 0.0:
-			continue
-		if not item_db.has_tag(id, &"luxury"):
-			continue
-		if item_db.has_tag(id, &"luxury_good"):
-			luxury_good_items.append(id)
-		elif item_db.has_tag(id, &"processed"):
-			processed_items.append(id)
-		else:
-			ingredient_items.append(id)
-
-	var remain_units: float = units_needed
-
-	# Luxury Good → Processed → Ingredient
-	if remain_units > 0.0 and luxury_good_items.size() > 0:
-		var units_lux: float = remain_units * config.luxury_cost_luxury_good
-		var d_lux: Dictionary = _consume_units_from_items(luxury_good_items, units_lux, working)
-		InventoryUtil.merge_delta(out, d_lux)
-		remain_units -= _units_to_luxury_taken(d_lux, config.luxury_cost_luxury_good)
-
-	if remain_units > 0.0 and processed_items.size() > 0:
-		var units_proc: float = remain_units * config.luxury_cost_processed
-		var d_proc: Dictionary = _consume_units_from_items(processed_items, units_proc, working)
-		InventoryUtil.merge_delta(out, d_proc)
-		remain_units -= _units_to_luxury_taken(d_proc, config.luxury_cost_processed)
-
-	if remain_units > 0.0 and ingredient_items.size() > 0:
-		var units_ing: float = remain_units * config.luxury_cost_ingredient
-		var d_ing: Dictionary = _consume_units_from_items(ingredient_items, units_ing, working)
-		InventoryUtil.merge_delta(out, d_ing)
-		remain_units -= _units_to_luxury_taken(d_ing, config.luxury_cost_ingredient)
-
-	return out
-
-# ------------------------------------------------------------
-# Luxury-level snapshot (units)
-# ------------------------------------------------------------
-func _compute_luxury_level_snapshot(cap: int, working: Dictionary) -> float:
-	if item_db == null:
-		return 0.0
-	var need: float = (float(cap) / 10.0) * config.luxury_units_per_10_pops
-	var have: float = _luxury_units_available_in(working)
-	return have - need
-
-func _luxury_units_available_in(working: Dictionary) -> float:
-	if item_db == null:
-		return 0.0
-	var units: float = 0.0
-	for k in working.keys():
-		var id: StringName = (k if k is StringName else StringName(str(k)))
-		var amount: float = float(working.get(k, 0.0))
-		if amount <= 0.0:
-			continue
-		if not item_db.has_tag(id, &"luxury"):
-			continue
-		if item_db.has_tag(id, &"luxury_good"):
-			units += amount / max(0.0001, config.luxury_cost_luxury_good)
-		elif item_db.has_tag(id, &"processed"):
-			units += amount / max(0.0001, config.luxury_cost_processed)
-		else:
-			units += amount / max(0.0001, config.luxury_cost_ingredient)
-	return units
-
-func _units_to_luxury_taken(d: Dictionary, units_per_point: float) -> float:
-	var units_total: float = 0.0
-	for v in d.values():
-		if float(v) < 0.0:
-			units_total += -float(v)
-	return units_total / max(0.0001, units_per_point)

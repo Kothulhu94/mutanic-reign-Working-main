@@ -1,0 +1,26 @@
+@context "Mesa Biome Bestiary"
+@target_directory "d:\GodoTDev\mutanic-reign-Working-main\Beasts\Mesa"
+
+@beast "Basalt Scuttlers"
+  script: "BasaltScuttlers.gd"
+  tier: "T1"
+  role: "Mineral Scout"
+  stats: { HP: 18, Dmg: 4, Def: 4, Speed: 70.0 }
+  behavior: "Roam"
+  note: "Trace vibrations. Future: +25% ore detection."
+
+@beast "Sunspine Ram"
+  script: "SunspineRam.gd"
+  tier: "T2"
+  role: "Climber"
+  stats: { HP: 35, Dmg: 9, Def: 7, Speed: 85.0 }
+  behavior: "Territorial"
+  note: "Charge attack. Future: -20% slope penalty."
+
+@beast "Cinder Vulture"
+  script: "CinderVulture.gd"
+  tier: "T3"
+  role: "Aerial Patrol"
+  stats: { HP: 60, Dmg: 18, Def: 12, Speed: 110.0 }
+  behavior: "Hunt Caravans"
+  note: "Dive striker. Future: +30% threat detection."

@@ -52,17 +52,18 @@ func get_max_capacity() -> int:
 		return leader_sheet.get_max_slots() * leader_sheet.get_max_stack_size()
 	return 100
 
-func can_carry_more() -> bool:
+func can_add_item(item_id: StringName, amount: int) -> bool:
 	if leader_sheet:
-		# Simple check: do we have empty slots?
-		# Or can we stack existing? 
-		# This is a rough check. For specific items use leader_sheet.can_add_item(id, amt)
-		return leader_sheet.inventory.size() < leader_sheet.get_max_slots()
+		return leader_sheet.can_add_item(item_id, amount)
 	return false
 
-func add_item(item_id: StringName, amount: int) -> void:
+func add_item(item_id: StringName, amount: int) -> bool:
 	if leader_sheet:
-		leader_sheet.add_item(item_id, amount)
+		var success: bool = leader_sheet.add_item(item_id, amount)
+		if not success:
+			print("CaravanState: FAILED to add %d %s to leader sheet! Slots: %d/%d. StackLimit: %d" % [amount, item_id, leader_sheet.inventory.size(), leader_sheet.get_max_slots(), leader_sheet.get_max_stack_size()])
+		return success
+	return false
 
 func remove_item(item_id: StringName, amount: int) -> bool:
 	if leader_sheet:
@@ -76,3 +77,40 @@ func clear_inventory() -> void:
 
 func flip_leg() -> void:
 	current_leg = Leg.RETURN if current_leg == Leg.OUTBOUND else Leg.OUTBOUND
+
+# --- Serialization ---
+
+func to_dict() -> Dictionary:
+	var data: Dictionary = {}
+	data["home_hub_id"] = str(home_hub_id)
+	data["destination_hub_id"] = str(destination_hub_id)
+	# Inventory is stored in leader_sheet, so we don't need to duplicate it here
+	# unless for legacy reasons, but cleaner to rely on leader_sheet.
+	data["pacs"] = pacs
+	data["profit_this_trip"] = profit_this_trip
+	data["current_leg"] = current_leg
+	
+	if leader_sheet != null:
+		data["leader_sheet"] = leader_sheet.to_dict()
+	
+	if caravan_type != null:
+		data["caravan_type_path"] = caravan_type.resource_path
+		
+	return data
+
+func from_dict(data: Dictionary) -> void:
+	home_hub_id = StringName(data.get("home_hub_id", ""))
+	destination_hub_id = StringName(data.get("destination_hub_id", ""))
+	pacs = data.get("pacs", 0)
+	profit_this_trip = data.get("profit_this_trip", 0)
+	current_leg = data.get("current_leg", Leg.OUTBOUND)
+	
+	var leader_data: Variant = data.get("leader_sheet", null)
+	if leader_data != null and leader_data is Dictionary:
+		if leader_sheet == null:
+			leader_sheet = CharacterSheet.new()
+		leader_sheet.from_dict(leader_data)
+		
+	var caravan_type_path: String = data.get("caravan_type_path", "")
+	if not caravan_type_path.is_empty():
+		caravan_type = load(caravan_type_path)

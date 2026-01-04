@@ -43,6 +43,7 @@ func _ready() -> void:
 
 	_setup_navigation_blocking()
 
+
 func _initialize_charactersheet() -> void:
 	if den_type == null:
 		return
@@ -70,64 +71,32 @@ func _setup_navigation_blocking() -> void:
 	collision_shape.shape = circle
 	static_body.add_child(collision_shape)
 	
-	# Wait for scene tree
-	await get_tree().physics_frame
-	
-	# Carve navigation hole
-	_carve_navigation_hole(radius)
+	# Block MapManager AStar
+	_update_map_manager_obstacle(true)
 
-func _carve_navigation_hole(radius: float) -> void:
-	var nav_region: NavigationRegion2D = _find_containing_navigation_region()
+func _update_map_manager_obstacle(is_solid: bool) -> void:
+	var mm = get_node_or_null("/root/Overworld/MapManager")
+	if mm == null:
+		# Fallback: try to find in current scene
+		mm = get_tree().current_scene.find_child("MapManager", true, false)
 	
-	if nav_region != null:
-		# Backup original geometry first (only once per region)
-		NavigationBackup.backup_region(nav_region)
+	if mm != null:
+		# Register as grid source to ensure nav mesh exists around den even if off-screen
+		# Radius 3 = 7x7 chunks = ~3500px radius, covers 1200px wander + 800px spawn offset easily
+		if mm.has_method("register_grid_source"):
+			mm.register_grid_source("den_%s" % name, global_position, 3)
 		
-		# Carve the hole
-		var success := NavigationCarver.carve_circle(
-			nav_region,
-			global_position,
-			radius
-		)
-		
-		if success:
-			print("[BeastDen] Carved navigation hole at: ", global_position, " with radius: ", radius)
+		var obs_id = "den_" + str(get_instance_id())
+		if is_solid:
+			var radius := obstacle_radius
+			if den_type != null:
+				radius = den_type.obstacle_radius
+			if mm.has_method("set_dynamic_obstacle"):
+				mm.set_dynamic_obstacle(obs_id, global_position, radius, true)
 		else:
-			print("[BeastDen] Failed to carve navigation hole")
-	else:
-		print("[BeastDen] No NavigationRegion2D found for position: ", global_position)
+			if mm.has_method("remove_dynamic_obstacle"):
+				mm.remove_dynamic_obstacle(obs_id)
 
-func _find_containing_navigation_region() -> NavigationRegion2D:
-	# Get all NavigationRegion2D nodes in the scene
-	var regions: Array[NavigationRegion2D] = []
-	if overworld != null:
-		_find_all_nav_regions(overworld, regions)
-	
-	# Find the one that actually contains our position
-	for region in regions:
-		if region.navigation_polygon == null:
-			continue
-			
-		var local_pos := region.to_local(global_position)
-		var poly := region.navigation_polygon
-		
-		# Check if point is inside any of the outlines
-		# Note: This assumes the outer boundary is the containment check. 
-		# Complex polygons with holes might require more robust checks, 
-		# but usually checking the largest outline or any outline is a good start.
-		for i in range(poly.get_outline_count()):
-			var outline := poly.get_outline(i)
-			if Geometry2D.is_point_in_polygon(local_pos, outline):
-				return region
-				
-	return null
-
-func _find_all_nav_regions(node: Node, result: Array[NavigationRegion2D]) -> void:
-	if node is NavigationRegion2D:
-		result.append(node)
-	
-	for child in node.get_children():
-		_find_all_nav_regions(child, result)
 
 ## Called automatically by Timekeeper each game tick
 func _on_timekeeper_tick(_dt: float) -> void:
@@ -244,9 +213,7 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 
 func _remove_den() -> void:
 	# Restore navigation when den is destroyed
-	var nav_region: NavigationRegion2D = _find_containing_navigation_region()
-	if nav_region != null:
-		NavigationBackup.restore_region(nav_region)
+	_update_map_manager_obstacle(false)
 	
 	den_destroyed.emit(self)
 	queue_free()

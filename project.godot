@@ -12,7 +12,7 @@ config_version=5
 
 config/name="MutanicReign"
 config/version="1.0.0"
-run/main_scene="uid://bn7il32yep7nb"
+run/main_scene="uid://c6ddyxopxsh6"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -23,7 +23,7 @@ Timekeeper="*res://singletons/Timekeeper.gd"
 SceneLoader="*res://singletons/SceneLoader.gd"
 ProgressionManager="*res://singletons/ProgressionManager.gd"
 PauseMenu="*res://UI/PauseMenu.tscn"
-CombatManager="*res://combat.gd"
+CombatManager="*res://scripts/combat.gd"
 SaveManager="*res://singletons/SaveManager.gd"
 TroopDatabase="*res://data/TroopDatabase.gd"
 Skills="*res://Autoloads/Skills.gd"

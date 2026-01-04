@@ -1,21 +1,4 @@
-
 @context "Data Directory Analysis"
 @target_directory "d:\GodoTDev\mutanic-reign-Working-main\data"
-
-@overview "Data Architecture"
-  - "Philosophy": Heavy use of Godot `Resource` files (`.tres`) for data-driven design.
-  - "State Management": Separation of 'Definition' (Type) and 'Instance' (State).
-    - Example: `CaravanType` (Static Config) vs `CaravanState` (Runtime Data).
-  
-@key_scripts
-  - "BuildSlotState.gd": Lightweight container for building persistence (Scene + Level).
-  - "HubState.gd": Massive state container for Settlements (Inventory, Slots, Population).
-  - "CaravanState.gd": Runtime logic for traders, wrapping `CharacterSheet`.
-
-@structure
-  - "BeastDens": Spawner configurations.
-  - "Caravans": Trader definitions.
-  - "Hubs": Settlement initial states.
-  - "Items": Economic commodities.
-  - "Skills": RPG progression trees.
-  - "troops": Military unit definitions.
+@status "Pending Analysis"
+@mark "Future Addition"

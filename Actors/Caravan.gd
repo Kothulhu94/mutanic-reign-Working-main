@@ -8,21 +8,20 @@ class_name Caravan
 
 ## Emitted when player clicks on this caravan to initiate chase
 signal player_initiated_chase(caravan_actor: Caravan)
+signal mission_complete(caravan: Caravan)
 
 # Constants & Enums
 const WAIT_TIMEOUT: float = 60.0
 
 enum State {
-	IDLE, # Waiting at home hub
+	IDLE, # Waiting at home hub (Garage)
 	BUYING_AT_HOME, # Purchasing goods from home hub
 	TRAVELING, # Moving to destination
 	EVALUATING_TRADE, # At destination, checking prices
 	SELLING, # Selling goods at destination
-	WAITING_TO_SELL, # Waiting at hub before selling at loss
 	SEEKING_NEXT_HUB, # Looking for another profitable hub
 	RETURNING_HOME # Going back to home hub
 }
-
 # Exports
 @export var surplus_threshold: float = 200.0 # Items over need to trigger spawn
 @export var home_tax_rate: float = 0.1 # 10% of carried money goes to hub
@@ -49,7 +48,8 @@ var charactersheet: CharacterSheet:
 # Private Variables
 var _is_paused: bool = false
 var _health_visual: Control
-var _wait_timer: float = 0.0
+var _navigation_line: Line2D
+
 var _idle_cooldown: float = 0.0
 
 func _ready() -> void:
@@ -65,6 +65,12 @@ func _ready() -> void:
 	trading_system = CaravanTradingSystem.new()
 	add_child(trading_system)
 
+	# Initialize visual path line
+	_navigation_line = Line2D.new()
+	_navigation_line.width = 4.0
+	_navigation_line.top_level = true # Draw in world space
+	add_child(_navigation_line)
+
 	# Connect input event signal for clicking
 	input_event.connect(_on_input_event)
 
@@ -75,6 +81,14 @@ func _ready() -> void:
 			timekeeper.paused.connect(_on_timekeeper_paused)
 		if timekeeper.has_signal("resumed"):
 			timekeeper.resumed.connect(_on_timekeeper_resumed)
+			
+	var p_name = "null"
+	if get_parent():
+		p_name = get_parent().name
+	print("Caravan %s: READY. Parent: %s" % [name, p_name])
+
+func _exit_tree() -> void:
+	print("Caravan %s: DESPAWNING (Exit Tree)." % name)
 
 func setup(home: Hub, state: CaravanState, db: ItemDB, hubs: Array[Hub], map_mgr: MapManager) -> void:
 	home_hub = home
@@ -85,9 +99,13 @@ func setup(home: Hub, state: CaravanState, db: ItemDB, hubs: Array[Hub], map_mgr
 	if map_mgr == null:
 		push_error("Caravan: MapManager passed to setup() is null!")
 
+	# Updates line color based on type
+	_update_path_color()
+
 	# Initialize health for combat
 	if caravan_state != null and caravan_state.leader_sheet != null:
 		caravan_state.leader_sheet.initialize_health()
+		# ... (rest of health setup)
 
 		# Set up health visual
 		var health_visual_scene: PackedScene = preload("res://UI/ActorHealthVisual.tscn")
@@ -119,12 +137,52 @@ func setup(home: Hub, state: CaravanState, db: ItemDB, hubs: Array[Hub], map_mgr
 	global_position = home.global_position
 
 	# Start the AI
+	refresh_visuals()
 	_transition_to(State.BUYING_AT_HOME)
+
+func refresh_visuals() -> void:
+	if caravan_state == null or caravan_state.caravan_type == null:
+		return
+		
+	var sprite: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
+	if sprite != null and caravan_state.caravan_type.sprite != null:
+		sprite.texture = caravan_state.caravan_type.sprite
+		
+	# Update path color again if type changed or initialized late
+	_update_path_color()
+
+	# Also update nav layers for the new type?
+	if navigator != null:
+		navigator.set_navigation_layers(caravan_state.caravan_type.navigation_layers)
 
 func _process(delta: float) -> void:
 	if _idle_cooldown > 0.0:
 		_idle_cooldown -= delta
 	
+	# Update Path Line Visualization
+	if _navigation_line != null and navigator != null:
+		if current_state == State.TRAVELING or current_state == State.RETURNING_HOME:
+			if navigator.is_using_abstract_movement():
+				# Draw straight line to target for abstract movement
+				var tgt = navigator.get_final_target()
+				if tgt != Vector2.ZERO:
+					_navigation_line.points = PackedVector2Array([global_position, tgt])
+					_navigation_line.visible = true
+				else:
+					_navigation_line.visible = false
+			else:
+				# Draw grid path
+				var path_points = navigator.get_current_path_points()
+				if path_points.size() > 0:
+					var pts = PackedVector2Array([global_position])
+					pts.append_array(path_points)
+					_navigation_line.points = pts
+					_navigation_line.visible = true
+				else:
+					_navigation_line.visible = false
+		else:
+			_navigation_line.visible = false
+
 	# Don't process AI if paused
 	if _is_paused:
 		return
@@ -145,16 +203,16 @@ func _process(delta: float) -> void:
 			_state_evaluating_trade()
 		State.SELLING:
 			_state_selling()
-		State.WAITING_TO_SELL:
-			_state_waiting_to_sell(delta)
-		State.SEEKING_NEXT_HUB:
-			_state_seeking_next_hub()
+		# State.WAITING_TO_SELL removed
+		# State.SEEKING_NEXT_HUB removed
 		State.RETURNING_HOME:
 			_state_returning_home(delta)
 
 # ============================================================
 # State Machine
 # ============================================================
+
+
 func _transition_to(new_state: State) -> void:
 	# print("Caravan %s: Transitioning to %s" % [name, State.keys()[new_state]])
 	current_state = new_state
@@ -169,29 +227,44 @@ func _transition_to(new_state: State) -> void:
 				navigator.set_target_position(home_hub.global_position)
 
 
+var current_mission_type: CaravanType = null # The job we are currently doing
+
 func _state_idle() -> void:
 	if _idle_cooldown > 0.0:
 		return
-
-	if trading_system.home_has_available_preferred_items(home_hub):
+	
+	# If we have a mission type but are idling, it means we are retrying
+	if current_mission_type != null:
 		_transition_to(State.BUYING_AT_HOME)
+	# Else: Passive state. Waiting for explicit start_mission() from Hub.
+
+func start_mission(mission_type: CaravanType = null) -> void:
+	# Called by Hub when clocking in
+	_idle_cooldown = 0.0
+	current_mission_type = mission_type
+	
+	if trading_system.has_method("set_mission_override"):
+		trading_system.set_mission_override(mission_type)
+		
+	_transition_to(State.BUYING_AT_HOME)
 
 func _state_buying_at_home() -> void:
-	var _bought: int = trading_system.buy_items_at_home(home_hub)
+	# print("Caravan %s (%s): Buying at home..." % [name, caravan_state.caravan_type.type_id])
+	trading_system.buy_items_at_home(home_hub)
 	
 	if caravan_state.inventory.size() > 0:
 		current_target_hub = trading_system.find_next_destination(home_hub)
 		if current_target_hub != null:
-			# print("Caravan %s: Bought items, heading to %s" % [name, current_target_hub.state.display_name])
 			_transition_to(State.TRAVELING)
 		else:
-			push_warning("Caravan %s: Bought items but found no destination!" % name)
-			_idle_cooldown = 2.0
+			# print("Caravan %s: Bought items but found no destination! Retrying..." % name)
+			_idle_cooldown = 5.0
 			_transition_to(State.IDLE)
 	else:
-		# print("Caravan %s: Could not buy items at home." % name)
-		_idle_cooldown = 2.0
+		# print("Caravan %s: Failed to buy items (Stock/Money issue?). Retrying..." % name)
+		_idle_cooldown = 5.0
 		_transition_to(State.IDLE)
+
 
 func _state_traveling(delta: float) -> void:
 	if navigator.is_navigation_finished():
@@ -205,37 +278,41 @@ func _state_evaluating_trade() -> void:
 	var profitable: bool = trading_system.evaluate_trade_at_hub(current_target_hub)
 	
 	if profitable:
+		print("Caravan %s: Trade profitable at %s. Selling..." % [name, current_target_hub.state.display_name])
 		_transition_to(State.SELLING)
 	else:
-		_wait_timer = 0.0
-		_transition_to(State.WAITING_TO_SELL)
+		# Loss: Check next destination immediately
+		print("Caravan %s: Trade NOT profitable at %s. Seeking next hub..." % [name, current_target_hub.state.display_name])
+		
+		# Note: evaluate_trade_at_hub already adds current to visited_hubs
+		current_target_hub = trading_system.find_next_destination(home_hub)
+		if current_target_hub != null:
+			print("Caravan %s: Heading to next suggestion: %s" % [name, current_target_hub.state.display_name])
+			_transition_to(State.TRAVELING)
+		else:
+			# Give Up: Return home (with cargo)
+			print("Caravan %s: No more hubs to check. Returning home." % name)
+			_transition_to(State.RETURNING_HOME)
 
 func _state_selling() -> void:
-	trading_system.sell_items_at_hub(current_target_hub, false)
-	_transition_to(State.RETURNING_HOME)
-
-func _state_waiting_to_sell(delta: float) -> void:
-	_wait_timer += delta
-	if _wait_timer >= WAIT_TIMEOUT:
-		trading_system.sell_items_at_hub(current_target_hub, true) # Force sell
-		_transition_to(State.RETURNING_HOME)
-
-func _state_seeking_next_hub() -> void:
-	# This state seems redundant if we always return home after selling (as per original logic line 291)
-	# But original code had logic for it.
-	# Original logic: check if visited all hubs. If so, return home. Else find next.
-	var visited_count: int = trading_system.get_visited_count_excluding(home_hub)
-	var total_hubs: int = trading_system.get_total_hubs_excluding(home_hub)
+	trading_system.sell_items_at_hub(current_target_hub, home_hub, false)
 	
-	if visited_count >= total_hubs:
+	# If we still have stock, try to sell at the next hub
+	if caravan_state.inventory.is_empty():
 		_transition_to(State.RETURNING_HOME)
-		return
-		
-	current_target_hub = trading_system.find_next_destination(home_hub)
-	if current_target_hub != null:
-		_transition_to(State.TRAVELING)
 	else:
-		_transition_to(State.RETURNING_HOME)
+		print("Caravan %s: Still has inventory. Seeking next buyer..." % name)
+		# Add current hub to visited list is done by sell_items_at_hub
+		current_target_hub = trading_system.find_next_destination(home_hub)
+		if current_target_hub != null:
+			print("Caravan %s: Heading to next stop: %s" % [name, current_target_hub.state.display_name])
+			_transition_to(State.TRAVELING)
+		else:
+			print("Caravan %s: No more buyers found. Returning home." % name)
+			_transition_to(State.RETURNING_HOME)
+
+# _state_waiting_to_sell removed
+
 
 func _state_returning_home(delta: float) -> void:
 	if navigator.is_navigation_finished():
@@ -245,7 +322,11 @@ func _state_returning_home(delta: float) -> void:
 	navigator.update_movement(delta)
 
 func _arrive_at_home() -> void:
-	# Awards and tax
+	# 1. Deposit unsold cargo (if any) - "Give Up" case
+	if caravan_state.inventory.size() > 0:
+		trading_system.deposit_all_at_home(home_hub)
+	
+	# 2. Awards and tax
 	var trip_profit: int = caravan_state.profit_this_trip
 	var route_value: float = float(caravan_state.pacs + trip_profit)
 	
@@ -261,6 +342,9 @@ func _arrive_at_home() -> void:
 		home_hub.state.pacs += tax
 		
 	trading_system.reset_trip()
+	
+	# Clock Out
+	mission_complete.emit(self)
 	_transition_to(State.IDLE)
 
 # ============================================================
@@ -273,10 +357,20 @@ func get_state_name() -> String:
 		State.TRAVELING: return "Traveling"
 		State.EVALUATING_TRADE: return "Evaluating"
 		State.SELLING: return "Selling"
-		State.WAITING_TO_SELL: return "Waiting"
-		State.SEEKING_NEXT_HUB: return "Seeking"
 		State.RETURNING_HOME: return "Returning"
 	return "Unknown"
+
+func _update_path_color() -> void:
+	if _navigation_line == null or caravan_state == null or caravan_state.caravan_type == null:
+		return
+		
+	var type_id = caravan_state.caravan_type.type_id
+	match type_id:
+		"food": _navigation_line.default_color = Color.GREEN
+		"material": _navigation_line.default_color = Color.RED
+		"luxury": _navigation_line.default_color = Color.PURPLE
+		"medicine": _navigation_line.default_color = Color.ALICE_BLUE
+		_: _navigation_line.default_color = Color.WHITE
 
 func get_item_price(item_id: StringName) -> float:
 	if item_db == null:

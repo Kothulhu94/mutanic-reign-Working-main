@@ -1,43 +1,46 @@
-
-@context "Economic Simulation Analysis"
+@context "Economic Simulation Engine Analysis"
 @target_directory "d:\GodoTDev\mutanic-reign-Working-main\Economy"
 
 @engine "HubEconomy"
   script: "HubEconomy.gd"
-  role: "Tick-Based Simulation Engine"
+  role: "Stateless Logic Core"
+  @architecture "Pure Logic"
+    - Input: `float_inv`, `buildings`, `dt`, `bonuses`.
+    - Output: `result` Dictionary { delta, levels, telemetry }.
+    - No direct state modification (returns Deltas).
   
-  @process_loop "tick()"
-    1. "Producers": Call `produce_tick()`, accumulate positive delta.
-    2. "Processors": Call `refine_tick()`, accumulate positive/negative delta.
-    3. "Consumption": Check timers for Food, Infra, Medical, Luxury.
-    4. "Snapshot": Compute current shortage/surplus levels.
-    5. "Telemetry": Return `consumed` vs `produced` dicts for pricing logic.
+  @pipeline
+    1. **Producers**: Call `produce_tick(bonus)`. Accumulate positive delta.
+       - Track `telemetry_produced` (+).
+    2. **Processors**: Call `refine_tick(inv, bonus)`. Accumulate mix delta.
+       - Track `telemetry_produced` (+) and `telemetry_consumed` (-).
+    3. **Consumption Cadence**:
+       - `_update_consumption` (Food): 1 serving per 10 pops.
+       - `_update_infrastructure_consumption`: Maintenance per building level.
+       - `_update_medical_consumption`: Health upkeep.
+       - `_update_luxury_consumption`: Happiness upkeep.
+    4. **Snapshotting**:
+       - Calculates `level = Have - Need`.
+       - Calculates `food_stock_servings`.
 
-  @consumption_logic
-    - "Food": Eaten per 10 pops. Prefers `meal` > `processed` > `ingredient` tags.
-    - "Infrastructure": Maintenance cost based on building count/levels. Prefers `component` > `processed` > `material`.
-    - "Medical": Needed per 10 pops. Prefers `medicine` > `processed` > `medical`.
-    - "Luxury": Needed per 10 pops. Prefers `luxury_good`.
+  @consumption_tiers
+    - Logic: `_consume_generic_tick`
+    - Hierarchy:
+      1. Specific Tag (e.g. `meal`) -> Higher efficiency.
+      2. Broad Tag (e.g. `processed`) -> Medium efficiency.
+      3. Raw Tag (e.g. `ingredient`) -> Low efficiency.
+    - Math: `UnitsNeeded -= Taken / Efficiency`. Better items fill needs faster.
 
-  @math
-    - "Cadence": Timers (`_hunger_timer_accum`) decouple logic tick rate from game FPS.
-    - "Units": Items have different 'unit values' (e.g. 1 Meal = 5 Ingredients).
+@script "HubEconomyManager"
+  # Note: This script typically resides in Hub/HubEconomyManager.gd but is referenced here for context.
+  role: "Stateful Wrapper"
+  @features
+    - Maintains `_inventory_float` to prevent precision loss from integer inventory truncation during partial logic ticks.
 
-@configuration "EconomyConfig"
+@consts "EconomyConfig"
   script: "EconomyConfig.gd"
   role: "Tunable Parameters"
-  @properties
-    - "Consumption Rates": `servings_per_10_pops`, `tick_intervals`.
-    - "Unit Costs": Defines efficiency hierarchy (Finished goods are more efficient than raw).
-    - "Trading": `caravan_surplus_threshold` triggers export logic.
-
-@utility "InventoryUtil"
-  script: "InventoryUtil.gd"
-  role: "Math Helper"
-  @features
-    - "Float Mirror": Converts mixed int/float inventories to pure float for calculation.
-    - "Merge Delta": Additive dictionary merging.
-
-@notes
-  - "Statelessness": `HubEconomy` is a logic engine (RefCounted). Use `setup()` to inject dependencies (`ItemDB`).
-  - "Telemetry": The `consumed`/`produced` returns are CRITICAL for the `MarketManager` to adjust dynamic prices.
+  @values
+    - `servings_per_10_pops`: Default consumption rate.
+    - `cost_units_meal`: Efficiency multiplier (e.g. 1.0).
+    - `cost_units_ingredient`: Efficiency penalty (e.g. 0.2).

@@ -9,7 +9,7 @@ signal player_initiated_chase(beast: Beast)
 var charactersheet: CharacterSheet = null
 
 ## Navigation for movement AI
-# @onready var nav_agent: NavigationAgent2D = $NavigationAgent2D <- Removed
+
 var map_manager: MapManager
 var _current_path: PackedVector2Array = []
 var _path_index: int = 0
@@ -65,8 +65,19 @@ func _update_ai(_delta: float) -> void:
 # --- Movement API for subclasses ---
 func move_to(target_pos: Vector2) -> void:
 	if map_manager == null:
+		print("[Beast] %s: MapManager is null!" % name)
 		return
 	_current_path = map_manager.get_path_world(global_position, target_pos)
+	
+	if _current_path.is_empty():
+		print("[Beast] %s: Path to %s failed! (Start: %s)" % [name, target_pos, global_position])
+		var start_cell = map_manager.global_to_map(global_position)
+		var end_cell = map_manager.global_to_map(target_pos)
+		print("[Beast] Grid Coords - Start: %s, End: %s" % [start_cell, end_cell])
+	else:
+		# print("[Beast] %s: Path found with %d points" % [name, _current_path.size()])
+		pass
+		
 	_path_index = 0
 
 	# OPTIMIZATION: path smoothing
