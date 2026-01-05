@@ -40,6 +40,12 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/mode=1
 
+[editor]
+
+script/external_editor/use_external_editor=true
+script/external_editor/exec_path="code"
+script/external_editor/exec_flags="{project} --goto {file}:{line}:{col}"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/navigation_carving/plugin.cfg")

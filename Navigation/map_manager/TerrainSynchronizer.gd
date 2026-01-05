@@ -23,6 +23,9 @@ static func sync_obstacles(astars: Dictionary, map_loader: Node, cell_size: Vect
 			var img = map_loader.loaded_terrain_data[chunk_coord]
 			if not img: continue
 			
+			var id_counts = {}
+			
+			
 			var chunk_pixel_rect = Rect2i(cx * NavConstants.CHUNK_SIZE, cy * NavConstants.CHUNK_SIZE, NavConstants.CHUNK_SIZE, NavConstants.CHUNK_SIZE)
 			var region_pixel_rect = Rect2i(r.position * cell_size, r.size * cell_size)
 			var intersection = chunk_pixel_rect.intersection(region_pixel_rect)
@@ -49,47 +52,52 @@ static func sync_obstacles(astars: Dictionary, map_loader: Node, cell_size: Vect
 					var col = img.get_pixel(img_x, img_y)
 					var terrain_id = int(round(col.r * 255.0))
 					
+					id_counts[terrain_id] = id_counts.get(terrain_id, 0) + 1
+					
 					# Updated Terrain Checking with new IDs: 50, 100, 150
 					
-					# Optimization: Skip grass (0)
+					# Grass (0-10) - Cost 2.0 (Prefer existing bridges at 1.0)
 					if terrain_id < 10:
-						continue # Grass (Walkable on all)
-					
-					if terrain_id >= 40 and terrain_id <= 60: # Sand (ID 50)
-						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_weight_scale(cell_pos, 1.25)
-						if astars.has(NavConstants.LAYER_WATER): astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 1.25)
-						if astars.has(NavConstants.LAYER_BUILDER): astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 1.25)
-						
-					elif terrain_id >= 90 and terrain_id <= 110: # Snow (ID 100)
 						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_weight_scale(cell_pos, 2.0)
 						if astars.has(NavConstants.LAYER_WATER): astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 2.0)
 						if astars.has(NavConstants.LAYER_BUILDER): astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 2.0)
+					
+					elif terrain_id >= 40 and terrain_id <= 60: # Sand (ID 50)
+						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_weight_scale(cell_pos, 3.0)
+						if astars.has(NavConstants.LAYER_WATER): astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 3.0)
+						if astars.has(NavConstants.LAYER_BUILDER): astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 3.0)
+						
+					elif terrain_id >= 90 and terrain_id <= 110: # Snow (ID 100)
+						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_weight_scale(cell_pos, 5.0)
+						if astars.has(NavConstants.LAYER_WATER): astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 5.0)
+						if astars.has(NavConstants.LAYER_BUILDER): astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 5.0)
 						
 					elif terrain_id >= 140 and terrain_id <= 160: # Water (ID 150)
-						astars[NavConstants.LAYER_LAND].set_point_solid(cell_pos, true)
+						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_solid(cell_pos, true)
+						
 						# For Water Layer, it is walkable!
 						if astars.has(NavConstants.LAYER_WATER):
 							astars[NavConstants.LAYER_WATER].set_point_solid(cell_pos, false)
-							astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 1.0)
+							astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 5.0)
 							
 						if astars.has(NavConstants.LAYER_BUILDER):
 							astars[NavConstants.LAYER_BUILDER].set_point_solid(cell_pos, false)
-							astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 12.0) # Very high cost to discourage unnecessary bridges
+							astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 200.0) # Massive cost to build new bridges
 					
 					# Catch old legacy values just in case (1, 2, 3)
 					elif terrain_id == 1:
-						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_weight_scale(cell_pos, 1.25)
-						if astars.has(NavConstants.LAYER_WATER): astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 1.25)
-						if astars.has(NavConstants.LAYER_BUILDER): astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 1.25)
-					elif terrain_id == 2:
 						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_weight_scale(cell_pos, 2.0)
 						if astars.has(NavConstants.LAYER_WATER): astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 2.0)
 						if astars.has(NavConstants.LAYER_BUILDER): astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 2.0)
+					elif terrain_id == 2:
+						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_weight_scale(cell_pos, 5.0)
+						if astars.has(NavConstants.LAYER_WATER): astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 5.0)
+						if astars.has(NavConstants.LAYER_BUILDER): astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 5.0)
 					elif terrain_id == 3:
 						if astars.has(NavConstants.LAYER_LAND): astars[NavConstants.LAYER_LAND].set_point_solid(cell_pos, true)
 						if astars.has(NavConstants.LAYER_WATER):
 							astars[NavConstants.LAYER_WATER].set_point_solid(cell_pos, false)
-							astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 1.0)
+							astars[NavConstants.LAYER_WATER].set_point_weight_scale(cell_pos, 5.0)
 						if astars.has(NavConstants.LAYER_BUILDER):
 							astars[NavConstants.LAYER_BUILDER].set_point_solid(cell_pos, false)
-							astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 2.0)
+							astars[NavConstants.LAYER_BUILDER].set_point_weight_scale(cell_pos, 200.0)

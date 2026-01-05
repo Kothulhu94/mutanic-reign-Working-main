@@ -19,10 +19,10 @@ func resolve_combat_round(actor_a: Node2D, actor_b: Node2D) -> void:
 	var b_atk: int = b_sheet.get_effective_damage()
 	var b_def: int = b_sheet.get_effective_defense()
 
-	var a_atk_roll: int = 10 + a_atk + randi_range(0, 49)
-	var a_def_roll: int = 10 + a_def + randi_range(0, 49)
-	var b_atk_roll: int = 10 + b_atk + randi_range(0, 49)
-	var b_def_roll: int = 10 + b_def + randi_range(0, 49)
+	var a_atk_roll: int = a_atk + randi_range(0, 49)
+	var a_def_roll: int = a_def + randi_range(0, 49)
+	var b_atk_roll: int = b_atk + randi_range(0, 49)
+	var b_def_roll: int = b_def + randi_range(0, 49)
 
 	var damage_to_b: int = maxi(0, a_atk_roll - b_def_roll)
 	var damage_to_a: int = maxi(0, b_atk_roll - a_def_roll)

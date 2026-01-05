@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c7s2t2bplv8mh" path="res://scenes/overworld/overworld.gd" id="1_hxnvt"]
 [ext_resource type="Script" uid="uid://df3n8atmwuse5" path="res://scripts/EditorMapLoader.gd" id="2_1dryu"]
-[ext_resource type="Script" uid="uid://buoe21ml6g3ng" path="res://scripts/MapManager.gd" id="3_kn0ur"]
+[ext_resource type="Script" uid="uid://buoe21ml6g3ng" path="res://Navigation/MapManager.gd" id="3_kn0ur"]
 [ext_resource type="TileSet" uid="uid://dqkukvvklhbpj" path="res://resources/GridDataTileSet.tres" id="4_fn02g"]
 [ext_resource type="PackedScene" uid="uid://c14uenn8n47fb" path="res://Actors/Bus.tscn" id="5_n00ki"]
 [ext_resource type="PackedScene" uid="uid://blipjagcsarec" path="res://Hub/Hub.tscn" id="6_vqjas"]

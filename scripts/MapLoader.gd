@@ -139,7 +139,9 @@ func get_terrain_at(global_pos: Vector2) -> int:
 	
 	# Optimization: If using 'L', Godot usually imports as R8 or similar.
 	var col = img.get_pixel(x, y)
-	return int(round(col.r * 255.0))
+	var t_id = int(round(col.r * 255.0))
+	# print("MapLoader Query: %s -> ID %d" % [global_pos, t_id])
+	return t_id
 
 func _load_chunk_data(coord: Vector2i):
 	var path_data = "res://assets/map_data/data_%d_%d.png" % [coord.x, coord.y]

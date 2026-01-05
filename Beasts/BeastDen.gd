@@ -41,6 +41,17 @@ func _ready() -> void:
 		if not tk.is_connected("tick", Callable(self, "_on_timekeeper_tick")):
 			tk.connect("tick", Callable(self, "_on_timekeeper_tick"))
 
+	if overworld == null:
+		push_warning("BeastDen: Overworld not found in current_scene, searching root...")
+		overworld = get_tree().root.get_node_or_null("Overworld")
+
+	if overworld != null and overworld.has_method("_on_chase_initiated"):
+		if not player_initiated_chase.is_connected(overworld._on_chase_initiated):
+			player_initiated_chase.connect(overworld._on_chase_initiated)
+			print("BeastDen: Connected to Overworld chase signal.")
+	else:
+		push_error("BeastDen: Could not find Overworld or _on_chase_initiated method!")
+
 	_setup_navigation_blocking()
 
 
@@ -145,6 +156,15 @@ func _spawn_beast(beast_scene: PackedScene) -> void:
 
 	overworld.add_child(beast)
 	beast.global_position = global_position + spawn_offset
+	
+	# Inject MapManager for navigation
+	var mm = get_node_or_null("/root/Overworld/MapManager")
+	if mm == null:
+		mm = overworld.find_child("MapManager", true, false)
+		
+	if mm != null and beast.has_method("setup"):
+		beast.setup(mm)
+	
 	active_beasts.append(beast)
 
 	if beast.has_signal("tree_exited"):
@@ -208,6 +228,7 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> voi
 	if event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
+			print("BeastDen: Clicked! Emitting chase signal.")
 			player_initiated_chase.emit(self)
 			get_viewport().set_input_as_handled()
 

@@ -9,10 +9,8 @@ signal player_initiated_chase(beast: Beast)
 var charactersheet: CharacterSheet = null
 
 ## Navigation for movement AI
-
+var navigator: BeastNavigator
 var map_manager: MapManager
-var _current_path: PackedVector2Array = []
-var _path_index: int = 0
 
 ## Movement configuration
 @export var movement_speed: float = 80.0
@@ -30,16 +28,25 @@ var _is_paused: bool = false
 func _ready() -> void:
 	add_to_group("beasts")
 
-	# Find MapManager
-	map_manager = get_node_or_null("/root/Overworld/MapManager")
+	# Initialize Navigator
+	navigator = BeastNavigator.new()
+	add_child(navigator)
+
+	# Find MapManager fallback
 	if map_manager == null:
-		# Fallback search
-		var p = get_parent()
-		while p != null:
-			if p.has_node("MapManager"):
-				map_manager = p.get_node("MapManager")
-				break
-			p = p.get_parent()
+		map_manager = get_node_or_null("/root/Overworld/MapManager")
+		if map_manager == null:
+			# Fallback search
+			var p = get_parent()
+			while p != null:
+				if p.has_node("MapManager"):
+					map_manager = p.get_node("MapManager")
+					break
+				p = p.get_parent()
+	
+	if map_manager != null:
+		navigator.setup(self, map_manager, movement_speed)
+		navigator.set_navigation_layers(navigation_layers)
 
 	input_event.connect(_on_input_event)
 
@@ -53,6 +60,12 @@ func _ready() -> void:
 	if charactersheet != null:
 		charactersheet.health_changed.connect(_on_health_changed)
 
+func setup(map_mgr: MapManager) -> void:
+	map_manager = map_mgr
+	if navigator != null:
+		navigator.setup(self, map_mgr, movement_speed)
+		navigator.set_navigation_layers(navigation_layers)
+
 func _physics_process(delta: float) -> void:
 	if _is_paused:
 		return
@@ -64,47 +77,23 @@ func _update_ai(_delta: float) -> void:
 
 # --- Movement API for subclasses ---
 func move_to(target_pos: Vector2) -> void:
-	if map_manager == null:
-		print("[Beast] %s: MapManager is null!" % name)
-		return
-	_current_path = map_manager.get_path_world(global_position, target_pos)
-	
-	if _current_path.is_empty():
-		print("[Beast] %s: Path to %s failed! (Start: %s)" % [name, target_pos, global_position])
-		var start_cell = map_manager.global_to_map(global_position)
-		var end_cell = map_manager.global_to_map(target_pos)
-		print("[Beast] Grid Coords - Start: %s, End: %s" % [start_cell, end_cell])
-	else:
-		# print("[Beast] %s: Path found with %d points" % [name, _current_path.size()])
-		pass
-		
-	_path_index = 0
-
-	# OPTIMIZATION: path smoothing
-	# If the first point in the path is the cell we are currently in, skip it 
-	# to avoid backtracking to the exact center of the current cell.
-	if _current_path.size() > 1:
-		var current_cell = map_manager.local_to_map(global_position)
-		var start_path_cell = map_manager.local_to_map(_current_path[0])
-		if current_cell == start_path_cell:
-			_path_index = 1
+	if navigator:
+		navigator.set_target_position(target_pos)
 
 func update_movement(delta: float) -> void:
-	if _current_path.is_empty():
-		return
+	if navigator:
+		navigator.update_movement(delta)
 
-	if _path_index >= _current_path.size():
-		return
+# --- Navigation Helpers ---
+func is_navigation_finished() -> bool:
+	if navigator:
+		return navigator.is_navigation_finished()
+	return true
 
-	var next_point = _current_path[_path_index]
-	var distance = global_position.distance_to(next_point)
-
-	if distance < 5.0:
-		_path_index += 1
-		return
-
-	var direction = global_position.direction_to(next_point)
-	global_position += direction * movement_speed * delta
+func has_valid_path() -> bool:
+	if navigator:
+		return not navigator._current_path.is_empty()
+	return false
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton:

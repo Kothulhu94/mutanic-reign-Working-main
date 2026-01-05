@@ -54,10 +54,16 @@ func _create_new_astar_instance() -> AStarGrid2D:
 	return a
 
 func _process(_delta: float) -> void:
-	# Update Camera Grid
-	var cam = get_viewport().get_camera_2d()
-	if cam:
-		_update_single_grid("camera", cam.global_position)
+	# Update Camera Grid (Anchored to Player Bus if possible)
+	# User Request: Grid should stay with the Bus, not follow Camera pans.
+	var target_node = get_tree().get_first_node_in_group("player")
+	if target_node:
+		_update_single_grid("camera", target_node.global_position)
+	else:
+		# Fallback to actual camera if no player exists (e.g. editor mode or unspawned)
+		var cam = get_viewport().get_camera_2d()
+		if cam:
+			_update_single_grid("camera", cam.global_position)
 
 func _update_single_grid(id: String, world_pos: Vector2):
 	if not active_grids.has(id):
@@ -155,16 +161,33 @@ func _create_astar_set() -> Dictionary:
 # Bridge System
 var built_bridges: Dictionary = {} # Key: Vector2i (Map Cell), Value: bool
 
-func get_bridging_path(start_pos: Vector2, end_pos: Vector2) -> PackedVector2Array:
+func get_bridging_path(start_pos: Vector2, end_pos: Vector2, max_bridge_length: int = 15) -> PackedVector2Array:
 	# Use LAYER_BUILDER to find a path that allows crossing water
 	var start_cell = global_to_map(start_pos)
 	var end_cell = global_to_map(end_pos)
 	
 	for key in active_grids:
-		var a = active_grids[key]["astars"][NavConstants.LAYER_BUILDER]
-		if a.region.has_point(start_cell) and a.region.has_point(end_cell):
-			if not a.is_point_solid(start_cell) and not a.is_point_solid(end_cell):
-				var points = a.get_point_path(start_cell, end_cell)
+		var grid_set = active_grids[key]["astars"]
+		var builder_astar = grid_set[NavConstants.LAYER_BUILDER]
+		var land_astar = grid_set[NavConstants.LAYER_LAND]
+		
+		if builder_astar.region.has_point(start_cell) and builder_astar.region.has_point(end_cell):
+			if not builder_astar.is_point_solid(start_cell) and not builder_astar.is_point_solid(end_cell):
+				var points = builder_astar.get_point_path(start_cell, end_cell)
+				
+				# Validate Bridge Length
+				var consecutive_water = 0
+				for p in points:
+					# Check if this point is Water (Solid on Land Layer implies Water or Obstacle)
+					# Note: Built bridges are NOT solid on Land Layer, so they don't count towards this limit.
+					if land_astar.is_point_solid(p):
+						consecutive_water += 1
+						if consecutive_water > max_bridge_length:
+							# Bridge too long!
+							return PackedVector2Array()
+					else:
+						consecutive_water = 0
+				
 				var global_pts: PackedVector2Array = []
 				for p in points:
 					global_pts.append(to_global(p))
@@ -183,6 +206,7 @@ func build_bridge_if_water(world_pos: Vector2) -> void:
 		var t_id = map_loader.get_terrain_at(world_pos)
 		if t_id < 140 or t_id > 160: # Not Water (150)
 			return
+
 			
 	# Store
 	built_bridges[cell] = true
@@ -220,13 +244,33 @@ func _sync_bridges(astars: Dictionary) -> void:
 # API
 func is_point_in_active_region(world_pos: Vector2, grid_type: String = "camera") -> bool:
 	var cell = global_to_map(world_pos)
-	if active_grids.has(grid_type):
-		return active_grids[grid_type]["astars"][NavConstants.LAYER_LAND].region.has_point(cell)
 	
-	# Fallback
+	# Priority Check: Check the requested grid first
+	if active_grids.has(grid_type):
+		if active_grids[grid_type]["astars"][NavConstants.LAYER_LAND].region.has_point(cell):
+			return true
+	
+	# Fallback: Check ALL active grids (Implicit OR)
 	for key in active_grids:
+		if key == grid_type: continue # Already checked
 		if active_grids[key]["astars"][NavConstants.LAYER_LAND].region.has_point(cell):
 			return true
+			
+	return false
+
+func is_point_navigable(world_pos: Vector2, navigation_layers: int = 1) -> bool:
+	var cell = global_to_map(world_pos)
+	
+	# Resolve Layer
+	var layer_id = NavConstants.LAYER_LAND
+	if navigation_layers & NavConstants.LAYER_WATER:
+		layer_id = NavConstants.LAYER_WATER
+		
+	for key in active_grids:
+		var a = active_grids[key]["astars"][layer_id]
+		if a.region.has_point(cell):
+			return not a.is_point_solid(cell)
+			
 	return false
 
 func is_in_same_active_grid(start_pos: Vector2, end_pos: Vector2) -> bool:

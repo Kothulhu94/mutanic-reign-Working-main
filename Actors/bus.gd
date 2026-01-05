@@ -19,7 +19,7 @@ var inventory: Dictionary:
 var pacs: int = 1000
 var _health_visual: Control
 var _chase_target: Node2D = null
-const ENCOUNTER_DISTANCE: float = 120.0
+const ENCOUNTER_DISTANCE: float = 180.0
 var _repath_timer: float = 0.0
 const REPATH_INTERVAL: float = 0.2
 
@@ -57,6 +57,7 @@ var _current_path: PackedVector2Array = []
 var _path_index: int = 0
 
 func _ready() -> void:
+	add_to_group("player")
 	scale = Vector2(4, 4)
 	charactersheet = CharacterSheet.new()
 	charactersheet.initialize_health()
@@ -131,6 +132,10 @@ func _physics_process(_delta: float) -> void:
 			print("[Bus] Encounter triggered! Distance: %.1f" % distance_to_target)
 			encounter_initiated.emit(self, target)
 			return
+		elif _chase_target != null:
+			# Debug print occassionally if close?
+			if distance_to_target < 300:
+				pass # print("[Bus] Chasing... dist: %.1f" % distance_to_target)
 
 		# Update navigation target if chasing
 		_repath_timer -= _delta

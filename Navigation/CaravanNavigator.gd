@@ -52,8 +52,8 @@ func set_target_position(target_pos: Vector2) -> void:
 			if map_manager.is_in_same_active_grid(_parent_node.global_position, target_pos):
 				# BRIDGING LOGIC:
 				# If blocked by water, try to build a bridge?
-				# Request a "Builder Path" (Layer 3)
-				var builder_path = map_manager.get_bridging_path(_parent_node.global_position, target_pos)
+				# Request a "Builder Path" (Layer 3) with a max length of 5 cells (20px)
+				var builder_path = map_manager.get_bridging_path(_parent_node.global_position, target_pos, 5)
 				
 				if not builder_path.is_empty():
 					print("CaravanNavigator: Standard path blocked. Builder path found! Constructing bridge...")
@@ -70,6 +70,22 @@ func set_target_position(target_pos: Vector2) -> void:
 				
 			# Target unreachable/OOB: Path to edge
 			var edge_exit = map_manager.get_nav_boundary_exit(_parent_node.global_position, target_pos)
+			var dist_to_exit = _parent_node.global_position.distance_to(edge_exit)
+			
+			# Check if we are already at the boundary exit
+			# Threshold increased to 60.0 to catch actors arriving at the edge
+			if dist_to_exit < 60.0:
+				# FLIGHT CHECK: Only enter abstract movement if the TARGET is in a valid Navigatable Chunk.
+				# This prevents flying into Void chunks (single missing chunk scenarios).
+				if map_manager.is_point_in_active_region(target_pos):
+					_is_using_abstract_movement = true
+					_target_pos = map_manager.get_nav_boundary_entry(target_pos, _parent_node.global_position)
+					return
+				else:
+					print("CaravanNavigator: Target %s is in Void (Active Region Check failed). Preventing Abstract Movement." % target_pos)
+					stop()
+					return
+			
 			var edge_path = map_manager.get_path_world(_parent_node.global_position, edge_exit, _navigation_layers)
 			
 			if not edge_path.is_empty():
@@ -78,14 +94,9 @@ func set_target_position(target_pos: Vector2) -> void:
 				_target_pos = edge_exit
 				_prune_path_start()
 			else:
-				# Edge path logic failed.
-				# Only fly if we are ALREADY at the edge.
-				if _parent_node.global_position.distance_to(edge_exit) < 40.0:
-					_is_using_abstract_movement = true
-					_target_pos = map_manager.get_nav_boundary_entry(target_pos, _parent_node.global_position)
-				else:
-					print("CaravanNavigator: trapped inside grid (dist to exit: %.1f). Stopping." % _parent_node.global_position.distance_to(edge_exit))
-					stop()
+				# Path failed, and we are not close enough to fly (or flight condition rejected above).
+				print("CaravanNavigator: Edge path failed and not in flight range.")
+				stop()
 	else:
 		# We are in the void. FLIGHT MODE.
 		_is_using_abstract_movement = true
@@ -143,7 +154,7 @@ func update_movement(delta: float) -> void:
 		if _abstract_repath_timer >= ABSTRACT_REPATH_INTERVAL:
 			_abstract_repath_timer = 0.0
 			# Check if we accidentally entered a valid region during flight
-			if map_manager.is_point_in_active_region(_parent_node.global_position):
+			if map_manager.is_point_in_active_region(_parent_node.global_position) and map_manager.is_point_navigable(_parent_node.global_position, _navigation_layers):
 				set_target_position(_final_abstract_target)
 		
 		var fly_angle = abstract_dir.angle()
@@ -154,14 +165,14 @@ func update_movement(delta: float) -> void:
 	if _is_local_path_finished():
 		if _final_abstract_target != Vector2.ZERO and _parent_node.global_position.distance_to(_final_abstract_target) > 20.0:
 			# We finished our local path (e.g. at edge), but are still far from final target.
-			# CRITICAL: Check if we are in a valid grid.
-			if map_manager.is_point_in_active_region(_parent_node.global_position):
+			# CRITICAL: Check if we are in a valid grid AND on valid terrain.
+			if map_manager.is_point_in_active_region(_parent_node.global_position) and map_manager.is_point_navigable(_parent_node.global_position, _navigation_layers):
 				# We are in a grid (e.g. just landed at destination edge).
 				# We should NOT fly. We should pathfind to the center.
 				# Trigger re-pathing to final target now that we are in range.
 				set_target_position(_final_abstract_target)
 			else:
-				# We are at the edge of the void. Switch to flight.
+				# We are at the edge of the void OR on invalid terrain. Switch to flight.
 				# print("CaravanNavigator: At void edge. Switching to Abstract Flight.")
 				_is_using_abstract_movement = true
 				_target_pos = map_manager.get_nav_boundary_entry(_final_abstract_target, _parent_node.global_position)
@@ -177,7 +188,9 @@ func update_movement(delta: float) -> void:
 		_path_index += 1
 		# CHECK FOR BRIDGE CONSTRUCTION
 		# If we just walked onto a node, ensure it is built if it was water.
-		map_manager.build_bridge_if_water(_parent_node.global_position)
+		# Only build if we are NOT amphibious (if we are land-only units forced to bridge)
+		if not (_navigation_layers & NavConstants.LAYER_WATER):
+			map_manager.build_bridge_if_water(_parent_node.global_position)
 		return
 		
 	var direction = _parent_node.global_position.direction_to(next_point)
@@ -186,7 +199,8 @@ func update_movement(delta: float) -> void:
 	# CONTINUOUS BRIDGE BUILDING (for robustness)
 	# Check point underfoot slightly ahead or current?
 	# Using 'build_bridge_at' is safe to call repeatedly.
-	map_manager.build_bridge_if_water(_parent_node.global_position)
+	if not (_navigation_layers & NavConstants.LAYER_WATER):
+		map_manager.build_bridge_if_water(_parent_node.global_position)
 	
 	var look_ahead_pos = _get_look_ahead_point(150.0)
 	var target_angle = (look_ahead_pos - _parent_node.global_position).angle()

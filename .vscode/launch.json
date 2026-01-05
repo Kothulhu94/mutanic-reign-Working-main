@@ -8,11 +8,13 @@
             "name": "GDScript: Launch Project",
             "type": "godot",
             "request": "launch",
-            "project": "${workspaceFolder}",
-            "debug_collisions": false,
-            "debug_paths": false,
-            "debug_navigation": false,
             "additional_options": ""
+        },
+        {
+            "name": "GDScript: Attach",
+            "type": "godot",
+            "request": "attach",
+            "port": 6006
         }
     ]
 }

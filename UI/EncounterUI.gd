@@ -54,6 +54,16 @@ func open_encounter(attacker: Node2D, defender: Node2D) -> void:
 		
 		trade_button.visible = can_trade
 		trade_button.disabled = not can_trade
+
+	if exit_button != null:
+		var can_exit: bool = true
+		# Disable exit for beast encounters - must fight or retreat via combat
+		if (_attacker and _attacker.is_in_group("beasts")) or (_defender and _defender.is_in_group("beasts")):
+			can_exit = false
+		
+		exit_button.visible = can_exit
+		exit_button.disabled = not can_exit
+
 	if combat_label != null:
 		combat_label.text = "Encounter!"
 
